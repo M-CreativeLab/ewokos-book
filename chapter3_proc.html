@@ -266,26 +266,50 @@
 <ol>
 <li><p><strong><code>info</code> (基本信息)</strong>：</p>
 <ul>
-<li><strong>PID</strong>：身份证号。</li>
-<li><strong>State</strong>：状态。是正在切菜（运行），还是在等菜送来（阻塞），还是已经做完了（僵尸）。</li>
-<li><strong>Owner</strong>：谁点的菜（父进程）。</li>
+<li><strong>PID</strong>：身份证号，从 0 开始递增分配。</li>
+<li><strong>State</strong>：状态。是正在切菜（<code>RUNNING</code>），还是在等菜送来（<code>BLOCK</code>、<code>WAIT</code>），还是已经做完了（<code>ZOMBIE</code>），或者准备好了（<code>READY</code>）。</li>
+<li><strong>Owner</strong>：谁点的菜（父进程 PPID）。</li>
+<li><strong>Priority</strong>：优先级。数字越小，优先级越高。</li>
+<li><strong>Core ID</strong>：在多核系统中，标识进程运行在哪个 CPU 核心上。</li>
 </ul>
 </li>
 <li><p><strong><code>space</code> (领地)</strong>：</p>
 <ul>
 <li>这里记录了进程拥有哪些内存页表。就像房产证一样，证明这块内存是我的，别人不能乱动。</li>
+<li>包含页目录 (<code>page_dir_entry_t* vm</code>) 的指针。</li>
+<li>包含堆 (<code>heap</code>) 和栈 (<code>stack</code>) 的范围。</li>
+<li><code>COW</code> 标记：标识哪些页面是写时复制的共享页面。</li>
 </ul>
 </li>
 <li><p><strong><code>ctx</code> (案发现场)</strong>：</p>
 <ul>
 <li>这是最关键的部分！当厨师（CPU）要暂停做这道菜去处理别的事情时，他必须把当前的进度（寄存器值）记下来。</li>
-<li><code>pc</code>：读到哪一行了。</li>
-<li><code>sp</code>：锅里有什么。</li>
-<li><code>r0-r12</code>：手头拿着什么调料。</li>
+<li><code>pc</code> (Program Counter)：读到哪一行了（下一条要执行的指令地址）。</li>
+<li><code>sp</code> (Stack Pointer)：锅里有什么（栈顶指针）。</li>
+<li><code>lr</code> (Link Register)：记住从哪里来，回去的地址。</li>
+<li><code>r0-r12</code>：ARM 通用寄存器，保存运算数据。</li>
+<li><code>cpsr</code>：当前程序状态寄存器，包含条件标志位。</li>
+</ul>
+</li>
+<li><p><strong><code>sleep_counter</code> (睡眠计数器)</strong>：</p>
+<ul>
+<li>当进程调用 <code>sleep()</code> 时，这个计数器记录还需要睡多少个时钟周期。</li>
+<li>每次时钟中断时，内核会递减所有睡眠进程的计数器。</li>
+<li>当计数器归零时，进程被唤醒。</li>
 </ul>
 </li>
 </ol>
-<h2 id="33-调度：谁是下一个幸运儿？">3.3 调度：谁是下一个幸运儿？</h2>
+<h2 id="321-进程状态转换图">3.2.1 进程状态转换图</h2>
+<pre><code>       fork()
+   NEW -------&gt; READY --------+
+                  ^            |
+                  |  schedule()|
+              wakeup()         v
+   WAIT/BLOCK &lt;--------- RUNNING -----&gt; ZOMBIE ----&gt; (销毁)
+      ^                     |              ^
+      |  sleep()/           |              |
+      +-- ipc_call()        +-- exit() ----+
+</code></pre><h2 id="33-调度：谁是下一个幸运儿？">3.3 调度：谁是下一个幸运儿？</h2>
 <p>EwokOS 的调度器 (Scheduler) 就像一个发号员。它的工作很简单：<strong>决定下一个让谁用 CPU</strong>。</p>
 <p>EwokOS 使用的是<strong>优先级调度</strong>算法。</p>
 <ol>
@@ -294,6 +318,35 @@
 <li><strong>挑选</strong>：调度器看一眼队列，挑一个优先级最高的进程。</li>
 <li><strong>切换</strong>：把当前进程踢下去，把新进程换上来。</li>
 </ol>
+<p><strong>关键代码片段</strong> (<code>kernel/kernel/src/sched.c</code>)：</p>
+<pre><code class="lang-c">void schedule(context_t* ctx) {
+    // 1. 保存当前进程的上下文
+    if(_current_proc != NULL)
+        proc_save(ctx);
+
+    // 2. 从就绪队列选择下一个进程
+    _current_proc = proc_get_next_ready();
+
+    // 3. 如果没有就绪进程，运行空闲进程
+    if(_current_proc == NULL)
+        _current_proc = _idle_proc;
+
+    // 4. 加载新进程的上下文
+    proc_load(ctx);
+}
+</code></pre>
+<h3 id="多核调度-smp-scheduling">多核调度 (SMP Scheduling)</h3>
+<p>在多核系统中，每个 CPU 核心都有自己的调度器。EwokOS 实现了<strong>负载均衡</strong>：</p>
+<ul>
+<li>每个核心维护自己的就绪队列。</li>
+<li>当某个核心空闲时，可以从其他核心的队列&quot;偷&quot;进程来执行（<strong>Work Stealing</strong>）。</li>
+<li>进程可以被&quot;亲和&quot;到特定核心，提高缓存命中率。</li>
+</ul>
+<p><strong>多核调度的挑战</strong>：</p>
+<ul>
+<li><strong>临界区保护</strong>：多个核心可能同时访问调度器数据结构，需要使用自旋锁 (Spinlock)。</li>
+<li><strong>核间中断 (IPI)</strong>：一个核心可以向其他核心发送中断，通知它们重新调度。</li>
+</ul>
 <h2 id="34-上下文切换：魔术般的瞬间">3.4 上下文切换：魔术般的瞬间</h2>
 <p><strong>上下文切换 (Context Switch)</strong> 是操作系统最迷人的魔术。
 当 CPU 从进程 A 切换到进程 B 时，发生了什么？</p>
@@ -355,7 +408,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"next":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"path":"chapter4_ipc.md","ref":"chapter4_ipc.md","articles":[]},"previous":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"path":"chapter2_arch.md","ref":"chapter2_arch.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter3_proc.md","mtime":"2025-11-24T07:03:29.891Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:03:38.594Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"next":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"path":"chapter4_ipc.md","ref":"chapter4_ipc.md","articles":[]},"previous":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"path":"chapter2_arch.md","ref":"chapter2_arch.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter3_proc.md","mtime":"2025-11-24T07:13:09.148Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:13:18.146Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

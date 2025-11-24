@@ -249,62 +249,157 @@
 <ul>
 <li><strong>位置</strong>：<code>kernel/kernel</code></li>
 <li><strong>职责</strong>：<ul>
-<li><strong>调度</strong>：决定谁能咬一口 CPU。</li>
-<li><strong>IPC</strong>：负责传递层与层之间的酱料（消息）。</li>
-<li><strong>内存管理</strong>：划分地盘，防止大家打架。</li>
+<li><strong>调度</strong>：决定谁能咬一口 CPU。支持抢占式调度和多核调度。</li>
+<li><strong>IPC</strong>：负责传递层与层之间的酱料（消息）。提供同步和异步两种通信方式。</li>
+<li><strong>内存管理</strong>：划分地盘，防止大家打架。实现虚拟内存、页表管理和 COW（写时复制）。</li>
+<li><strong>中断处理</strong>：响应硬件中断，分发给相应的驱动进程。</li>
 </ul>
 </li>
 <li><strong>特点</strong>：代码量极少，只有几千行。它不认识文件，不认识键盘，甚至不知道怎么在屏幕上画画。它只负责最基本的生存需求。</li>
 </ul>
-<h3 id="2-中间夹心：核心服务-core-services">2. 中间夹心：核心服务 (Core Services)</h3>
+<p><strong>核心目录结构</strong>：</p>
+<pre><code>kernel/kernel/
+├── include/           # 头文件
+│   └── kernel/
+│       ├── proc.h     # 进程管理相关定义
+│       ├── ipc.h      # IPC 相关接口
+│       ├── mm/        # 内存管理
+│       └── ...
+├── src/               # 源代码
+│   ├── kernel.c       # 内核入口和初始化
+│   ├── sched.c        # 调度器实现
+│   ├── ipc.c          # IPC 实现
+│   ├── mm/            # 内存管理实现
+│   │   ├── mmu.c      # MMU 配置
+│   │   ├── kmalloc.c  # 内核内存分配
+│   │   └── shm.c      # 共享内存
+│   └── ...
+</code></pre><h3 id="2-中间夹心：核心服务-core-services">2. 中间夹心：核心服务 (Core Services)</h3>
 <p>这层是三明治的精华，提供了操作系统的基础口感。</p>
 <ul>
-<li><strong>位置</strong>：<code>system/</code></li>
+<li><strong>位置</strong>：<code>system/basic/</code></li>
 <li><strong>成员</strong>：<ul>
-<li><strong>Core</strong>：内核的大管家，负责进程的注册、生杀大权。</li>
-<li><strong>VFS (Virtual File System)</strong>：虚拟文件系统。它是一个服务进程，负责管理所有的文件和设备。在 EwokOS 里，<strong>一切皆文件</strong>，而 VFS 就是这些文件的总管理员。</li>
+<li><strong>Core</strong> (<code>system/basic/init/core.c</code>)：内核的大管家，负责进程的注册、生杀大权。它是用户空间启动的第一个进程（PID=1），类似 Linux 的 init。</li>
+<li><strong>VFS (Virtual File System)</strong> (<code>system/basic/sbin/vfsd</code>)：虚拟文件系统。它是一个服务进程，负责管理所有的文件和设备。在 EwokOS 里，<strong>一切皆文件</strong>，而 VFS 就是这些文件的总管理员。</li>
+<li><strong>procserv</strong>：管理 <code>/proc</code> 文件系统，提供进程信息查询。</li>
+<li><strong>devd</strong>：设备管理守护进程，负责设备的注册和路由。</li>
 </ul>
 </li>
 </ul>
-<h3 id="3-上层配菜：驱动与应用-drivers--apps">3. 上层配菜：驱动与应用 (Drivers &amp; Apps)</h3>
+<p><strong>系统目录结构</strong>：</p>
+<pre><code>system/
+├── basic/             # 基础系统组件
+│   ├── init/          # Core 进程 (PID=1)
+│   ├── libc/          # C 标准库实现
+│   ├── libs/          # 系统库
+│   │   ├── vfs/       # VFS 客户端库
+│   │   ├── ipc/       # IPC 封装库
+│   │   └── ...
+│   ├── sbin/          # 系统服务
+│   │   ├── vfsd/      # VFS 守护进程
+│   │   ├── devd/      # 设备管理
+│   │   └── ...
+│   ├── drivers/       # 驱动程序
+│   └── bin/           # 用户工具
+├── gui/               # 图形界面系统
+└── xwin/              # X Window 系统
+</code></pre><h3 id="3-上层配菜：驱动与应用-drivers--apps">3. 上层配菜：驱动与应用 (Drivers &amp; Apps)</h3>
 <p>这层是最丰富多彩的，想加什么就加什么。</p>
 <ul>
 <li><strong>位置</strong>：<code>system/basic/drivers</code>, <code>system/basic/bin</code></li>
 <li><strong>成员</strong>：<ul>
-<li><strong>驱动程序</strong>：<code>timerd</code> (时钟), <code>uartd</code> (串口), <code>fbd</code> (显卡)。注意！它们是<strong>普通进程</strong>，和计算器、记事本没有本质区别，只是它们有权访问特定的硬件。</li>
-<li><strong>应用程序</strong>：Shell, Finder, 甚至贪吃蛇游戏。</li>
+<li><strong>驱动程序</strong>：<ul>
+<li><code>timerd</code>：时钟驱动，提供系统时间和定时器服务</li>
+<li><code>uartd</code>：串口驱动，处理串口通信</li>
+<li><code>fbd</code>：Framebuffer 显卡驱动，管理图形显示</li>
+<li><code>sdd</code>：SD 卡驱动，读写存储卡</li>
+<li><code>usbd</code>：USB 驱动，支持 USB 设备</li>
+<li>注意！它们是<strong>普通进程</strong>，和计算器、记事本没有本质区别，只是它们有权访问特定的硬件。</li>
+</ul>
+</li>
+<li><strong>文件系统驱动</strong>：<ul>
+<li><code>fsd/ext2d</code>：EXT2 文件系统驱动</li>
+<li><code>fsd/fatfsd</code>：FAT 文件系统驱动</li>
+</ul>
+</li>
+<li><strong>应用程序</strong>：<ul>
+<li><code>shell</code>：命令行界面</li>
+<li><code>ls</code>, <code>ps</code>, <code>cat</code>：常用 Unix 工具</li>
+<li>GUI 应用（如果编译了图形界面）</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 <h2 id="22-核心组件图解">2.2 核心组件图解</h2>
 <p>让我们画一张图来看看它们是怎么互动的：</p>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                   用户空间 (User Space)                      │
+│                                                             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│  │   App    │  │  Driver  │  │   VFS    │  │   Core   │     │
+│  │  (应用)  │  │  (驱动)  │  │  (文件)  │  │  (核心)  │        │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘     │
+│       ↓             ↑              ↑             ↑          │
+└───────┼─────────────┼──────────────┼─────────────┼──────────┘
+        │             │              │             │
+        │  IPC 调用   │              │             │
+        └─────────────┴──────────────┘             │
+                      │                            │
+┌─────────────────────┼────────────────────────────┼──────────┐
+│                     ↓                            ↓           │
+│              内核空间 (Kernel Space)                         │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │   微内核 (Scheduler, IPC, MMU, Interrupt Handler)   │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                             ↓                                │
+└─────────────────────────────┼────────────────────────────────┘
+                              ↓
+┌─────────────────────────────┼────────────────────────────────┐
+│                   硬件 (Hardware)                             │
+│  ┌────────┐  ┌────────┐  ┌──────────────────────┐            │
+│  │  CPU   │  │  RAM   │  │  外设 (Timer, UART)  │             │
+│  └────────┘  └────────┘  └──────────────────────┘            │
+└───────────────────────────────────────────────────────────────┘
+</code></pre><p>数据流向：</p>
+<ol>
+<li>App 通过 IPC 请求 VFS 读取文件</li>
+<li>VFS 将请求转发给对应的驱动进程</li>
+<li>驱动通过系统调用请求内核操作硬件</li>
+<li>内核操作硬件寄存器</li>
+<li>硬件产生中断，通知内核</li>
+<li>内核唤醒驱动进程</li>
+<li>驱动返回数据给 VFS</li>
+<li><p>VFS 返回结果给 App</p>
 <pre><code class="lang-mermaid"><div class="mermaid">graph TD
-    subgraph userSpace[&quot;用户空间 (User Space)&quot;]
-        App[用户应用 Shell, Game]
-        Driver[驱动进程 Timer, UART, FB]
-        VFS[VFS 服务进程]
-        Core[Core 服务进程]
-    end
+ subgraph userSpace[&quot;用户空间 (User Space)&quot;]
+     App[用户应用 Shell, Game]
+     Driver[驱动进程 Timer, UART, FB]
+     VFS[VFS 服务进程]
+     Core[Core 服务进程]
+ end
 
-    subgraph kernelSpace[&quot;内核空间 (Kernel Space)&quot;]
-        Microkernel[微内核 Scheduler, IPC, MMU]
-    end
+ subgraph kernelSpace[&quot;内核空间 (Kernel Space)&quot;]
+     Microkernel[微内核 Scheduler, IPC, MMU]
+ end
 
-    subgraph hardware[&quot;硬件 (Hardware)&quot;]
-        CPU
-        RAM
-        IO[外设 Timer, UART, Screen]
-    end
+ subgraph hardware[&quot;硬件 (Hardware)&quot;]
+     CPU
+     RAM
+     IO[外设 Timer, UART, Screen]
+ end
 
-    App --&gt;|1. 读文件| VFS
-    VFS --&gt;|2. 转发请求| Driver
-    Driver --&gt;|3. 读写寄存器| Microkernel
-    Microkernel --&gt;|4. 操作硬件| IO
-    IO --&gt;|5. 中断| Microkernel
-    Microkernel --&gt;|6. 通知| Driver
-    Driver --&gt;|7. 数据返回| VFS
-    VFS --&gt;|8. 结果返回| App
+ App --&gt;|1. 读文件| VFS
+ VFS --&gt;|2. 转发请求| Driver
+ Driver --&gt;|3. 读写寄存器| Microkernel
+ Microkernel --&gt;|4. 操作硬件| IO
+ IO --&gt;|5. 中断| Microkernel
+ Microkernel --&gt;|6. 通知| Driver
+ Driver --&gt;|7. 数据返回| VFS
+ VFS --&gt;|8. 结果返回| App
 </div></code></pre>
+</li>
+</ol>
 <h2 id="23-为什么这样设计？">2.3 为什么这样设计？</h2>
 <p>你可能会问，为什么要把驱动放在用户空间？让它们直接在内核里跑不是更快吗？</p>
 <p>这就好比：<strong>为什么不让修水管的工人住在你家里？</strong></p>
@@ -313,6 +408,64 @@
 <li><strong>灵活性</strong>：你想换个修水管的？直接换人就行，不用搬家。在 EwokOS 里，你可以在系统运行时加载、卸载驱动，就像打开关闭 App 一样简单。</li>
 </ul>
 <p>当然，代价就是——<strong>沟通成本</strong>。每次修水管都要打电话预约、开门、关门（IPC 通信），确实比住在家里随叫随到要慢一点。但为了安全和灵活，这个代价是值得的。</p>
+<h2 id="24-启动流程：从零到英雄">2.4 启动流程：从零到英雄</h2>
+<p>让我们看看 EwokOS 是如何从上电启动到运行 Shell 的：</p>
+<ol>
+<li><strong>硬件启动</strong>：CPU 从固定地址开始执行（如 ARM 的 <code>0x8000</code>）</li>
+<li><strong>Bootloader</strong>：如果在真实硬件上，先由 GPU 固件加载 <code>kernel7.img</code> 到内存</li>
+<li><strong>内核初始化</strong> (<code>kernel/kernel/src/kernel.c</code>)：<ul>
+<li>设置异常向量表</li>
+<li>初始化 MMU，启用虚拟内存</li>
+<li>初始化调度器</li>
+<li>初始化 IPC 机制</li>
+<li>加载第一个用户进程 <code>init</code></li>
+</ul>
+</li>
+<li><strong>Init 进程启动</strong> (<code>system/basic/init/init.c</code>)：<ul>
+<li>挂载根文件系统 <code>/</code></li>
+<li>启动 Core 服务（进程管理器）</li>
+</ul>
+</li>
+<li><strong>Core 进程</strong> (<code>system/basic/init/core.c</code>)：<ul>
+<li>启动 VFS 守护进程</li>
+<li>启动设备管理器 <code>devd</code></li>
+<li>根据配置启动各种驱动（<code>timerd</code>, <code>uartd</code>, <code>sdd</code> 等）</li>
+</ul>
+</li>
+<li><strong>VFS 和驱动就绪</strong>：<ul>
+<li>驱动向 VFS 注册设备节点（如 <code>/dev/timer</code>, <code>/dev/tty0</code>）</li>
+<li>文件系统驱动挂载分区</li>
+</ul>
+</li>
+<li><strong>启动 Shell</strong>：<ul>
+<li>Core 启动登录程序 <code>login</code></li>
+<li>用户登录后，启动 <code>shell</code></li>
+<li>用户开始与系统交互</li>
+</ul>
+</li>
+</ol>
+<p>整个启动过程是一个<strong>分层、渐进式</strong>的过程。每一层都依赖下一层提供的服务，就像搭积木一样逐步构建起整个系统。</p>
+<h2 id="25-编译系统：makefile-的艺术">2.5 编译系统：Makefile 的艺术</h2>
+<p>EwokOS 使用传统的 <code>make</code> 构建系统，但组织得非常巧妙：</p>
+<pre><code class="lang-bash"># 编译内核（以 Raspberry Pi 2 为例）
+cd kernel/build/raspi2/pix
+make                    # 生成 kernel7.img
+
+# 编译系统和应用
+cd system
+make basic              # 只编译基础系统（无 GUI）
+make gui                # 编译带 GUI 的系统
+make                    # 编译完整系统（包括 X Window）
+
+# 生成 SD 卡镜像
+make sd                 # 生成可直接写入 SD 卡的完整镜像
+</code></pre>
+<p>编译产物：</p>
+<ul>
+<li><code>kernel7.img</code>：内核镜像</li>
+<li><code>system/build/root.ext2</code>：根文件系统镜像</li>
+<li><code>system/build/data.ext2</code>：用户数据分区</li>
+</ul>
 <p>下一章，我们将深入内核的最深处，看看它是如何像提线木偶一样操控进程的。</p>
 
                                 
@@ -357,7 +510,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"next":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"previous":{"title":"第一章：操作系统的世界","level":"1.2","depth":1,"path":"chapter1_intro.md","ref":"chapter1_intro.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter2_arch.md","mtime":"2025-11-24T07:03:29.891Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:03:38.594Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"next":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"previous":{"title":"第一章：操作系统的世界","level":"1.2","depth":1,"path":"chapter1_intro.md","ref":"chapter1_intro.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter2_arch.md","mtime":"2025-11-24T07:13:09.148Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:13:18.146Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

@@ -307,6 +307,97 @@
 </ol>
 <p>虽然中间隔了个 VFS，看起来有点繁琐，但它统一了接口。用户程序不需要知道对面是硬盘还是串口，只需要会 <code>open/read/write</code> 三板斧就行了。</p>
 <p>下一章，我们将把手弄脏，亲自编译和运行 EwokOS。</p>
+<h2 id="64-驱动注册流程详解">6.4 驱动注册流程详解</h2>
+<p>让我们深入了解驱动是如何注册到系统中的：</p>
+<p><strong>步骤 1：驱动初始化</strong></p>
+<pre><code class="lang-c">int main(int argc, char** argv) {
+    // 初始化设备结构
+    vdevice_t dev;
+    memset(&amp;dev, 0, sizeof(vdevice_t));
+    strcpy(dev.name, &quot;timer&quot;);
+
+    // 设置设备控制回调函数
+    dev.dev_cntl = timer_dcntl;
+
+    // 向 VFS 注册设备
+    device_run(&amp;dev, &quot;/dev/timer&quot;, FS_TYPE_CHAR, 0666);
+    return 0;
+}
+</code></pre>
+<p><strong>步骤 2：VFS 挂载</strong>
+<code>device_run()</code> 内部会：</p>
+<ol>
+<li>通过 IPC 连接到 VFS 守护进程。</li>
+<li>发送注册请求，包含设备路径和类型。</li>
+<li>VFS 在虚拟文件树中创建设备节点。</li>
+<li>进入事件循环，等待 VFS 分发请求。</li>
+</ol>
+<p><strong>步骤 3：设备控制回调</strong></p>
+<pre><code class="lang-c">int timer_dcntl(int from_pid, int cmd, proto_t* in, proto_t* out, void* p) {
+    switch(cmd) {
+        case DEV_CMD_READ:
+            // 读取当前时间
+            uint64_t time = get_system_time();
+            proto_add_uint64(out, time);
+            return 0;
+        case DEV_CMD_WRITE:
+            // 设置定时器
+            uint64_t timeout = proto_read_uint64(in);
+            set_timer(timeout);
+            return 0;
+        default:
+            return -1;
+    }
+}
+</code></pre>
+<h2 id="65-常见驱动实例">6.5 常见驱动实例</h2>
+<h3 id="sd-卡驱动-sdd">SD 卡驱动 (<code>sdd</code>)</h3>
+<p>负责读写 SD 卡存储。它实现了块设备接口，支持：</p>
+<ul>
+<li>按扇区读写（通常是 512 字节）</li>
+<li>DMA 传输（Direct Memory Access），提高效率</li>
+<li>多分区支持</li>
+</ul>
+<h3 id="usb-驱动-usbd">USB 驱动 (<code>usbd</code>)</h3>
+<p>EwokOS 支持 USB 设备！USB 驱动实现了：</p>
+<ul>
+<li>USB 主机控制器接口（HCI）</li>
+<li>设备枚举和识别</li>
+<li>USB 键盘、鼠标支持</li>
+<li>USB 存储设备支持</li>
+</ul>
+<h3 id="framebuffer-驱动-fbd">Framebuffer 驱动 (<code>fbd</code>)</h3>
+<p>图形显示的基础，提供：</p>
+<ul>
+<li>像素缓冲区映射</li>
+<li>图形模式切换</li>
+<li>双缓冲（避免闪烁）</li>
+<li>支持多种分辨率（如 1024x768）</li>
+</ul>
+<h2 id="66-vfs-挂载机制">6.6 VFS 挂载机制</h2>
+<p>VFS 维护了一棵虚拟文件树。挂载点可以是：</p>
+<p><strong>根文件系统</strong>：</p>
+<pre><code>mount(&quot;/&quot;, &quot;ext2&quot;, &quot;/dev/mmcblk0p1&quot;);  // 挂载 SD 卡第一分区为根
+</code></pre><p><strong>设备文件系统</strong>：</p>
+<pre><code>/dev/
+├── timer    -&gt; timerd
+├── tty0     -&gt; uartd
+├── fb0      -&gt; fbd
+├── mmcblk0  -&gt; sdd
+└── ...
+</code></pre><p><strong>进程信息文件系统</strong>：</p>
+<pre><code>/proc/
+├── 1/       -&gt; Core 进程信息
+├── 2/       -&gt; VFS 进程信息
+└── ...
+</code></pre><p><strong>实际挂载过程</strong>：</p>
+<ol>
+<li>文件系统驱动（如 <code>ext2d</code>）向 VFS 注册。</li>
+<li>VFS 调用驱动的 <code>mount()</code> 方法。</li>
+<li>驱动读取分区超级块，建立目录索引。</li>
+<li>VFS 将挂载点加入全局挂载表。</li>
+</ol>
+<p>虽然中间隔了个 VFS，看起来有点繁琐，但它统一了接口。用户程序不需要知道对面是硬盘还是串口，只需要会 <code>open/read/write</code> 三板斧就行了。</p>
 
                                 
                                 </section>
@@ -350,7 +441,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"next":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"path":"chapter7_hands_on.md","ref":"chapter7_hands_on.md","articles":[]},"previous":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter6_drivers.md","mtime":"2025-11-24T07:03:29.891Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:03:38.594Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"next":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"path":"chapter7_hands_on.md","ref":"chapter7_hands_on.md","articles":[]},"previous":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter6_drivers.md","mtime":"2025-11-24T07:13:09.149Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:13:18.146Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

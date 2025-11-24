@@ -264,11 +264,11 @@ cd ewokos
 </code></pre>
 </li>
 <li><p><strong>编译内核</strong>：
-进入树莓派构建目录：</p>
-<pre><code class="lang-bash">cd kernel/build/raspi/pix
+进入树莓派构建目录（以 Raspberry Pi 2 为例）：</p>
+<pre><code class="lang-bash">cd kernel/build/raspi2/pix
 make
 </code></pre>
-<p>如果一切顺利，你会看到 <code>kernel.img</code> 生成了。</p>
+<p>如果一切顺利，你会看到 <code>kernel7.img</code> 生成了。</p>
 </li>
 <li><p><strong>编译文件系统</strong>：
 EwokOS 需要一个根文件系统 (RootFS) 才能启动。</p>
@@ -280,7 +280,7 @@ make
 </ol>
 <h2 id="73-运行！">7.3 运行！</h2>
 <p>回到构建目录，启动 QEMU：</p>
-<pre><code class="lang-bash">cd kernel/build/raspi/pix
+<pre><code class="lang-bash">cd kernel/build/raspi2/pix
 make run
 </code></pre>
 <p>你会看到一个黑色的窗口弹出，EwokOS 的启动日志开始刷屏。
@@ -298,6 +298,158 @@ password: &lt;直接回车&gt;
 <p>微内核的世界博大精深，EwokOS 只是为你打开了一扇窗。
 希望这本小册子能让你对操作系统有更直观的认识。
 现在，去探索代码的海洋吧！</p>
+<h2 id="75-真实硬件部署">7.5 真实硬件部署</h2>
+<p>在模拟器上玩够了？来点真的！</p>
+<h3 id="751-制作-sd-卡">7.5.1 制作 SD 卡</h3>
+<p>EwokOS 支持直接从 SD 卡启动。你需要：</p>
+<ol>
+<li><strong>准备 SD 卡</strong>：至少 1GB，建议 4GB 以上。</li>
+<li><p><strong>分区</strong>：</p>
+<pre><code class="lang-bash"># 使用 fdisk 创建分区
+# 分区 1: FAT32, 64MB (启动分区)
+# 分区 2: EXT2, 剩余空间 (根文件系统)
+</code></pre>
+</li>
+<li><p><strong>复制文件</strong>（以 Raspberry Pi 2 为例）：</p>
+<pre><code class="lang-bash"># 挂载启动分区
+mount /dev/sdX1 /mnt/boot
+
+# 复制固件和内核
+cp bootcode.bin start.elf config.txt /mnt/boot/
+cp kernel/build/raspi2/pix/kernel7.img /mnt/boot/
+
+# 挂载根文件系统分区
+mount /dev/sdX2 /mnt/root
+
+# 写入根文件系统
+cd system/build
+sudo dd if=root.ext2 of=/dev/sdX2 bs=1M
+</code></pre>
+</li>
+<li><p><strong>插入 Raspberry Pi，上电启动！</strong></p>
+</li>
+</ol>
+<h3 id="752-串口调试">7.5.2 串口调试</h3>
+<p>如果 EwokOS 启动失败，你需要串口来看内核日志：</p>
+<p><strong>硬件连接</strong>：</p>
+<ul>
+<li>USB 转 TTL 线</li>
+<li>TX -&gt; GPIO14 (Pin 8)</li>
+<li>RX -&gt; GPIO15 (Pin 10)</li>
+<li>GND -&gt; GND (Pin 6)</li>
+</ul>
+<p><strong>软件配置</strong>：</p>
+<pre><code class="lang-bash"># Linux/Mac
+sudo minicom -D /dev/ttyUSB0 -b 115200
+
+# 或使用 screen
+screen /dev/ttyUSB0 115200
+</code></pre>
+<p>你会看到内核启动日志：</p>
+<pre><code>[kernel] EwokOS v0.x starting...
+[kernel] MMU enabled
+[kernel] SMP: 4 cores detected
+[kernel] Loading init...
+[init] Mounting root filesystem...
+[core] Starting VFS...
+...
+</code></pre><h3 id="753-支持的硬件平台">7.5.3 支持的硬件平台</h3>
+<p>EwokOS 已移植到多种硬件：</p>
+<p><strong>树莓派系列</strong>：</p>
+<ul>
+<li>Raspberry Pi 1 (ARMv6, 单核)</li>
+<li>Raspberry Pi 2 (ARMv7, 4 核)</li>
+<li>Raspberry Pi 3 (ARMv8, 64 位, 4 核)</li>
+<li>Raspberry Pi 4 (ARMv8, 64 位, 4 核)</li>
+<li>Raspberry Pi 5（开发中）</li>
+</ul>
+<p><strong>其他开发板</strong>：</p>
+<ul>
+<li>ARM Versatile PB (QEMU)</li>
+<li>Orange Pi</li>
+<li>Miyoo 掌机</li>
+<li>Rockchip RK3128, RK3506</li>
+</ul>
+<p>每个平台的编译路径不同：</p>
+<pre><code class="lang-bash"># Raspberry Pi 2
+cd kernel/build/raspi2/pix
+
+# Raspberry Pi 3 (64 位)
+cd kernel/build/raspi3/pix64
+
+# Versatile PB
+cd kernel/build/versatilepb/pix
+</code></pre>
+<h2 id="76-调试技巧">7.6 调试技巧</h2>
+<h3 id="使用-gdb-调试内核">使用 GDB 调试内核</h3>
+<p>EwokOS 支持 GDB 远程调试：</p>
+<ol>
+<li><p><strong>启动调试服务器</strong>：</p>
+<pre><code class="lang-bash">cd kernel/build/raspi2/pix
+make debug
+</code></pre>
+<p>QEMU 会监听 1234 端口。</p>
+</li>
+<li><p><strong>连接 GDB</strong>：</p>
+<pre><code class="lang-bash"># 另开一个终端
+make gdb
+</code></pre>
+<p>或手动连接：</p>
+<pre><code class="lang-bash">arm-none-eabi-gdb kernel.elf
+(gdb) target remote localhost:1234
+(gdb) break kernel_main
+(gdb) continue
+</code></pre>
+</li>
+</ol>
+<h3 id="常用-gdb-命令">常用 GDB 命令</h3>
+<pre><code>(gdb) info registers       # 查看寄存器
+(gdb) x/16x 0x8000        # 查看内存
+(gdb) bt                   # 查看调用栈
+(gdb) list                 # 查看源代码
+(gdb) step                 # 单步执行
+</code></pre><h2 id="77-性能分析">7.7 性能分析</h2>
+<h3 id="查看进程信息">查看进程信息</h3>
+<pre><code class="lang-bash"># 列出所有进程
+ps
+
+# 查看进程详细信息
+cat /proc/1/info
+
+# 查看 CPU 使用率
+top
+</code></pre>
+<h3 id="内存使用">内存使用</h3>
+<pre><code class="lang-bash"># 查看内存统计
+free
+
+# 查看进程内存映射
+cat /proc/<pid>/maps
+</pid></code></pre>
+<p>微内核的世界博大精深，EwokOS 只是为你打开了一扇窗。
+希望这本小册子能让你对操作系统有更直观的认识。
+现在，去探索代码的海洋吧！</p>
+<h2 id="78-扩展阅读">7.8 扩展阅读</h2>
+<p>想深入了解 EwokOS？这里有一些资源：</p>
+<ul>
+<li><strong>官方仓库</strong>：<a href="https://github.com/MisaZhu/ewokos" target="_blank">https://github.com/MisaZhu/ewokos</a></li>
+<li><strong>文档目录</strong>：<code>docs/</code> 下有各平台的详细部署文档</li>
+<li><strong>源码导读</strong>：<ul>
+<li>从 <code>kernel/kernel/src/kernel.c</code> 开始，这是内核入口</li>
+<li>看 <code>system/basic/init/init.c</code>，了解用户空间启动</li>
+<li>读 <code>system/basic/sbin/vfsd/vfsd.c</code>，理解 VFS 实现</li>
+<li>研究 <code>system/basic/drivers/</code> 下的驱动代码</li>
+</ul>
+</li>
+</ul>
+<p><strong>学习建议</strong>：</p>
+<ol>
+<li>先在 QEMU 上跑起来，熟悉系统</li>
+<li>试着修改内核，添加自己的系统调用</li>
+<li>写一个简单的驱动（比如 LED 闪烁）</li>
+<li>移植到真实硬件，体验完整流程</li>
+</ol>
+<p>操作系统不再是黑盒，你已经掌握了打开它的钥匙！</p>
 
                                 
                                 </section>
@@ -337,7 +489,7 @@ password: &lt;直接回车&gt;
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"previous":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"path":"chapter6_drivers.md","ref":"chapter6_drivers.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter7_hands_on.md","mtime":"2025-11-24T07:03:29.891Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:03:38.594Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"previous":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"path":"chapter6_drivers.md","ref":"chapter6_drivers.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter7_hands_on.md","mtime":"2025-11-24T07:13:09.149Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:13:18.146Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

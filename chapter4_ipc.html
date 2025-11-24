@@ -329,6 +329,54 @@ void ipc_handle_loop() {
     }
 }
 </code></pre>
+<h2 id="45-消息数据结构：protot">4.5 消息数据结构：<code>proto_t</code></h2>
+<p>IPC 传递的数据被封装在 <code>proto_t</code> 结构中，它是一个灵活的数据包格式：</p>
+<pre><code class="lang-c">typedef struct {
+    void*    data;      // 数据缓冲区指针
+    uint32_t size;      // 数据大小
+    uint32_t offset;    // 读写偏移量
+    uint32_t capacity;  // 缓冲区容量
+} proto_t;
+</code></pre>
+<p><strong>使用方式</strong>：</p>
+<ul>
+<li><strong>写入数据</strong>：使用 <code>proto_add_int()</code>, <code>proto_add_str()</code> 等函数追加数据。</li>
+<li><strong>读取数据</strong>：使用 <code>proto_read_int()</code>, <code>proto_read_str()</code> 等函数按顺序读取。</li>
+<li><strong>序列化</strong>：数据在发送前会被序列化成字节流，接收后再反序列化。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<pre><code class="lang-c">// 客户端构造请求
+proto_t* req = proto_new(NULL, 0);
+proto_add_int(req, CMD_READ);
+proto_add_str(req, &quot;/dev/timer&quot;);
+proto_add_int(req, 1024);  // 读取长度
+
+// 发送 IPC 请求
+proto_t* resp = ipc_call(server_pid, req);
+
+// 解析响应
+int status = proto_read_int(resp);
+char* data = proto_read_str(resp, NULL);
+proto_free(resp);
+</code></pre>
+<h2 id="46-共享内存：更快的数据传递">4.6 共享内存：更快的数据传递</h2>
+<p>对于大量数据的传递，每次通过 IPC 复制会很慢。EwokOS 提供了<strong>共享内存 (Shared Memory)</strong> 机制：</p>
+<ol>
+<li><strong>创建共享内存</strong>：进程 A 创建一块共享内存区域。</li>
+<li><strong>映射</strong>：进程 A 和进程 B 都将这块物理内存映射到各自的虚拟地址空间。</li>
+<li><strong>直接访问</strong>：两个进程都可以直接读写这块内存，无需通过内核复制。</li>
+<li><strong>同步</strong>：使用锁或信号量保证并发访问的安全性。</li>
+</ol>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>零拷贝 (Zero-Copy)，效率极高。</li>
+<li>适合视频流、大文件等场景。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>需要手动同步，容易出错。</li>
+<li>失去了 IPC 的进程隔离保护。</li>
+</ul>
 <p>通过这种机制，EwokOS 将一个个独立的孤岛（进程）连接成了一个繁忙的群岛网络。</p>
 <p>下一章，我们将看看这些岛屿的地基——内存管理。</p>
 
@@ -374,7 +422,7 @@ void ipc_handle_loop() {
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"next":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"previous":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter4_ipc.md","mtime":"2025-11-24T07:03:29.891Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:03:38.594Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"next":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"previous":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter4_ipc.md","mtime":"2025-11-24T07:13:09.148Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:13:18.146Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
