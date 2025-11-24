@@ -201,7 +201,7 @@ EwokOS 支持 GDB 远程调试：
 
 ### 常用 GDB 命令
 
-```gdb
+```
 (gdb) info registers       # 查看寄存器
 (gdb) x/16x 0x8000        # 查看内存
 (gdb) bt                   # 查看调用栈
