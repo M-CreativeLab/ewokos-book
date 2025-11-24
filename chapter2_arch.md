@@ -33,31 +33,31 @@
 
 ```mermaid
 graph TD
-    subgraph User Space [用户空间 (User Space)]
-        App[用户应用 (Shell, Game)]
-        Driver[驱动进程 (Timer, UART, FB)]
+    subgraph userSpace["用户空间 (User Space)"]
+        App[用户应用 Shell, Game]
+        Driver[驱动进程 Timer, UART, FB]
         VFS[VFS 服务进程]
         Core[Core 服务进程]
     end
 
-    subgraph Kernel Space [内核空间 (Kernel Space)]
-        Microkernel[微内核 (Scheduler, IPC, MMU)]
+    subgraph kernelSpace["内核空间 (Kernel Space)"]
+        Microkernel[微内核 Scheduler, IPC, MMU]
     end
 
-    subgraph Hardware [硬件 (Hardware)]
+    subgraph hardware["硬件 (Hardware)"]
         CPU
         RAM
-        IO[外设 (Timer, UART, Screen)]
+        IO[外设 Timer, UART, Screen]
     end
 
-    App -- 1. 读文件 --> VFS
-    VFS -- 2. 转发请求 --> Driver
-    Driver -- 3. 读写寄存器 --> Microkernel
-    Microkernel -- 4. 操作硬件 --> IO
-    IO -- 5. 中断 --> Microkernel
-    Microkernel -- 6. 通知 --> Driver
-    Driver -- 7. 数据返回 --> VFS
-    VFS -- 8. 结果返回 --> App
+    App -->|1. 读文件| VFS
+    VFS -->|2. 转发请求| Driver
+    Driver -->|3. 读写寄存器| Microkernel
+    Microkernel -->|4. 操作硬件| IO
+    IO -->|5. 中断| Microkernel
+    Microkernel -->|6. 通知| Driver
+    Driver -->|7. 数据返回| VFS
+    VFS -->|8. 结果返回| App
 ```
 
 ## 2.3 为什么这样设计？
