@@ -9,7 +9,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "honkit": "^4.0.0"
+    "honkit": "^4.0.0",
+    "honkit-plugin-mermaid": "^0.1.4"
   },
   "overrides": {
     "cheerio": "1.0.0-rc.12"
