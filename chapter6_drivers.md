@@ -72,3 +72,108 @@ EwokOS 遵循 Unix 的哲学：**一切皆文件**。
 虽然中间隔了个 VFS，看起来有点繁琐，但它统一了接口。用户程序不需要知道对面是硬盘还是串口，只需要会 `open/read/write` 三板斧就行了。
 
 下一章，我们将把手弄脏，亲自编译和运行 EwokOS。
+
+## 6.4 驱动注册流程详解
+
+让我们深入了解驱动是如何注册到系统中的：
+
+**步骤 1：驱动初始化**
+```c
+int main(int argc, char** argv) {
+    // 初始化设备结构
+    vdevice_t dev;
+    memset(&dev, 0, sizeof(vdevice_t));
+    strcpy(dev.name, "timer");
+    
+    // 设置设备控制回调函数
+    dev.dev_cntl = timer_dcntl;
+    
+    // 向 VFS 注册设备
+    device_run(&dev, "/dev/timer", FS_TYPE_CHAR, 0666);
+    return 0;
+}
+```
+
+**步骤 2：VFS 挂载**
+`device_run()` 内部会：
+1.  通过 IPC 连接到 VFS 守护进程。
+2.  发送注册请求，包含设备路径和类型。
+3.  VFS 在虚拟文件树中创建设备节点。
+4.  进入事件循环，等待 VFS 分发请求。
+
+**步骤 3：设备控制回调**
+```c
+int timer_dcntl(int from_pid, int cmd, proto_t* in, proto_t* out, void* p) {
+    switch(cmd) {
+        case DEV_CMD_READ:
+            // 读取当前时间
+            uint64_t time = get_system_time();
+            proto_add_uint64(out, time);
+            return 0;
+        case DEV_CMD_WRITE:
+            // 设置定时器
+            uint64_t timeout = proto_read_uint64(in);
+            set_timer(timeout);
+            return 0;
+        default:
+            return -1;
+    }
+}
+```
+
+## 6.5 常见驱动实例
+
+### SD 卡驱动 (`sdd`)
+负责读写 SD 卡存储。它实现了块设备接口，支持：
+*   按扇区读写（通常是 512 字节）
+*   DMA 传输（Direct Memory Access），提高效率
+*   多分区支持
+
+### USB 驱动 (`usbd`)
+EwokOS 支持 USB 设备！USB 驱动实现了：
+*   USB 主机控制器接口（HCI）
+*   设备枚举和识别
+*   USB 键盘、鼠标支持
+*   USB 存储设备支持
+
+### Framebuffer 驱动 (`fbd`)
+图形显示的基础，提供：
+*   像素缓冲区映射
+*   图形模式切换
+*   双缓冲（避免闪烁）
+*   支持多种分辨率（如 1024x768）
+
+## 6.6 VFS 挂载机制
+
+VFS 维护了一棵虚拟文件树。挂载点可以是：
+
+**根文件系统**：
+```
+mount("/", "ext2", "/dev/mmcblk0p1");  // 挂载 SD 卡第一分区为根
+```
+
+**设备文件系统**：
+```
+/dev/
+├── timer    -> timerd
+├── tty0     -> uartd
+├── fb0      -> fbd
+├── mmcblk0  -> sdd
+└── ...
+```
+
+**进程信息文件系统**：
+```
+/proc/
+├── 1/       -> Core 进程信息
+├── 2/       -> VFS 进程信息
+└── ...
+```
+
+**实际挂载过程**：
+1.  文件系统驱动（如 `ext2d`）向 VFS 注册。
+2.  VFS 调用驱动的 `mount()` 方法。
+3.  驱动读取分区超级块，建立目录索引。
+4.  VFS 将挂载点加入全局挂载表。
+
+虽然中间隔了个 VFS，看起来有点繁琐，但它统一了接口。用户程序不需要知道对面是硬盘还是串口，只需要会 `open/read/write` 三板斧就行了。

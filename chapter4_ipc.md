@@ -82,6 +82,58 @@ void ipc_handle_loop() {
 }
 ```
 
+## 4.5 消息数据结构：`proto_t`
+
+IPC 传递的数据被封装在 `proto_t` 结构中，它是一个灵活的数据包格式：
+
+```c
+typedef struct {
+    void*    data;      // 数据缓冲区指针
+    uint32_t size;      // 数据大小
+    uint32_t offset;    // 读写偏移量
+    uint32_t capacity;  // 缓冲区容量
+} proto_t;
+```
+
+**使用方式**：
+*   **写入数据**：使用 `proto_add_int()`, `proto_add_str()` 等函数追加数据。
+*   **读取数据**：使用 `proto_read_int()`, `proto_read_str()` 等函数按顺序读取。
+*   **序列化**：数据在发送前会被序列化成字节流，接收后再反序列化。
+
+**示例**：
+```c
+// 客户端构造请求
+proto_t* req = proto_new(NULL, 0);
+proto_add_int(req, CMD_READ);
+proto_add_str(req, "/dev/timer");
+proto_add_int(req, 1024);  // 读取长度
+
+// 发送 IPC 请求
+proto_t* resp = ipc_call(server_pid, req);
+
+// 解析响应
+int status = proto_read_int(resp);
+char* data = proto_read_str(resp, NULL);
+proto_free(resp);
+```
+
+## 4.6 共享内存：更快的数据传递
+
+对于大量数据的传递，每次通过 IPC 复制会很慢。EwokOS 提供了**共享内存 (Shared Memory)** 机制：
+
+1.  **创建共享内存**：进程 A 创建一块共享内存区域。
+2.  **映射**：进程 A 和进程 B 都将这块物理内存映射到各自的虚拟地址空间。
+3.  **直接访问**：两个进程都可以直接读写这块内存，无需通过内核复制。
+4.  **同步**：使用锁或信号量保证并发访问的安全性。
+
+**优点**：
+*   零拷贝 (Zero-Copy)，效率极高。
+*   适合视频流、大文件等场景。
+
+**缺点**：
+*   需要手动同步，容易出错。
+*   失去了 IPC 的进程隔离保护。
+
 通过这种机制，EwokOS 将一个个独立的孤岛（进程）连接成了一个繁忙的群岛网络。
 
 下一章，我们将看看这些岛屿的地基——内存管理。
