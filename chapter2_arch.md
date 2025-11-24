@@ -252,7 +252,14 @@ static int __init timer_init(void) {
     return 0;
 }
 
+static void __exit timer_exit(void) {
+    cdev_del(timer_cdev);
+    unregister_chrdev_region(dev_num, 1);
+    printk(KERN_INFO "Timer driver unloaded\n");
+}
+
 module_init(timer_init);
+module_exit(timer_exit);
 MODULE_LICENSE("GPL");
 ```
 
@@ -275,7 +282,7 @@ MODULE_LICENSE("GPL");
 
 // 设备控制函数 - 处理读写请求
 static int timer_dcntl(int from_pid, int cmd, 
-                       proto_t* in, proto_t* out, void* p) {
+                       proto_t* in, proto_t* out, void* p) {  // p: 用户数据指针，此例中未使用
     if (cmd == CNTL_READ) {
         // 直接使用普通的函数调用
         uint64_t time = syscall1(SYS_GET_SYS_TIME, 0);
@@ -380,7 +387,7 @@ void device_run(vdevice_t* dev, const char* path,
 ```mermaid
 flowchart TD
     Start([上电]) --> Boot[硬件启动<br/>CPU从0x8000开始执行]
-    Boot --> Bootloader{在真实硬件?}
+    Boot --> Bootloader{在真实硬件？}
     Bootloader -->|是| GPU[GPU固件加载<br/>kernel7.img到内存]
     Bootloader -->|QEMU| KernelInit
     GPU --> KernelInit
