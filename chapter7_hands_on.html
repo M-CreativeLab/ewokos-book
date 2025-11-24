@@ -16,6 +16,10 @@
     
             
                 
+                <link rel="stylesheet" href="gitbook/honkit-plugin-mermaid/mermaid.css">
+                
+            
+                
                 <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
@@ -255,20 +259,20 @@ brew install qemu
 <p>EwokOS 支持多种硬件平台，最方便的是在 QEMU 模拟器上运行 Raspberry Pi (树莓派)。</p>
 <ol>
 <li><p><strong>下载源码</strong>：</p>
-<pre><code class="lang-bash">git <span class="hljs-built_in">clone</span> https://github.com/MisaZhu/ewokos.git
-<span class="hljs-built_in">cd</span> ewokos
+<pre><code class="lang-bash">git clone https://github.com/MisaZhu/ewokos.git
+cd ewokos
 </code></pre>
 </li>
 <li><p><strong>编译内核</strong>：
 进入树莓派构建目录：</p>
-<pre><code class="lang-bash"><span class="hljs-built_in">cd</span> kernel/build/raspi/pix
+<pre><code class="lang-bash">cd kernel/build/raspi/pix
 make
 </code></pre>
 <p>如果一切顺利，你会看到 <code>kernel.img</code> 生成了。</p>
 </li>
 <li><p><strong>编译文件系统</strong>：
 EwokOS 需要一个根文件系统 (RootFS) 才能启动。</p>
-<pre><code class="lang-bash"><span class="hljs-built_in">cd</span> ../../../system
+<pre><code class="lang-bash">cd ../../../system
 make
 </code></pre>
 <p>这会编译所有的驱动和应用程序，并打包成 <code>root.ext2</code>。</p>
@@ -276,7 +280,7 @@ make
 </ol>
 <h2 id="73-运行！">7.3 运行！</h2>
 <p>回到构建目录，启动 QEMU：</p>
-<pre><code class="lang-bash"><span class="hljs-built_in">cd</span> kernel/build/raspi/pix
+<pre><code class="lang-bash">cd kernel/build/raspi/pix
 make run
 </code></pre>
 <p>你会看到一个黑色的窗口弹出，EwokOS 的启动日志开始刷屏。
@@ -333,7 +337,7 @@ password: &lt;直接回车&gt;
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"previous":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"path":"chapter6_drivers.md","ref":"chapter6_drivers.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter7_hands_on.md","mtime":"2025-11-24T06:43:13.873Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T06:43:27.895Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"previous":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"path":"chapter6_drivers.md","ref":"chapter6_drivers.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter7_hands_on.md","mtime":"2025-11-24T07:03:29.891Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:03:38.594Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
@@ -385,6 +389,14 @@ password: &lt;直接回车&gt;
     </script>
     <script src="gitbook/gitbook.js"></script>
     <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/honkit-plugin-mermaid/mermaid-load.js"></script>
+        
+    
+        
+        <script src="gitbook/honkit-plugin-mermaid/mermaid.min.js"></script>
+        
     
         
         <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>

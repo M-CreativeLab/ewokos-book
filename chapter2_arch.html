@@ -16,6 +16,10 @@
     
             
                 
+                <link rel="stylesheet" href="gitbook/honkit-plugin-mermaid/mermaid.css">
+                
+            
+                
                 <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
@@ -274,33 +278,33 @@
 </ul>
 <h2 id="22-核心组件图解">2.2 核心组件图解</h2>
 <p>让我们画一张图来看看它们是怎么互动的：</p>
-<pre><code class="lang-mermaid">graph TD
-    subgraph User Space [用户空间 (User Space)]
-        App[用户应用 (Shell, Game)]
-        Driver[驱动进程 (Timer, UART, FB)]
+<pre><code class="lang-mermaid"><div class="mermaid">graph TD
+    subgraph userSpace[&quot;用户空间 (User Space)&quot;]
+        App[用户应用 Shell, Game]
+        Driver[驱动进程 Timer, UART, FB]
         VFS[VFS 服务进程]
         Core[Core 服务进程]
     end
 
-    subgraph Kernel Space [内核空间 (Kernel Space)]
-        Microkernel[微内核 (Scheduler, IPC, MMU)]
+    subgraph kernelSpace[&quot;内核空间 (Kernel Space)&quot;]
+        Microkernel[微内核 Scheduler, IPC, MMU]
     end
 
-    subgraph Hardware [硬件 (Hardware)]
+    subgraph hardware[&quot;硬件 (Hardware)&quot;]
         CPU
         RAM
-        IO[外设 (Timer, UART, Screen)]
+        IO[外设 Timer, UART, Screen]
     end
 
-    App -- 1. 读文件 --&gt; VFS
-    VFS -- 2. 转发请求 --&gt; Driver
-    Driver -- 3. 读写寄存器 --&gt; Microkernel
-    Microkernel -- 4. 操作硬件 --&gt; IO
-    IO -- 5. 中断 --&gt; Microkernel
-    Microkernel -- 6. 通知 --&gt; Driver
-    Driver -- 7. 数据返回 --&gt; VFS
-    VFS -- 8. 结果返回 --&gt; App
-</code></pre>
+    App --&gt;|1. 读文件| VFS
+    VFS --&gt;|2. 转发请求| Driver
+    Driver --&gt;|3. 读写寄存器| Microkernel
+    Microkernel --&gt;|4. 操作硬件| IO
+    IO --&gt;|5. 中断| Microkernel
+    Microkernel --&gt;|6. 通知| Driver
+    Driver --&gt;|7. 数据返回| VFS
+    VFS --&gt;|8. 结果返回| App
+</div></code></pre>
 <h2 id="23-为什么这样设计？">2.3 为什么这样设计？</h2>
 <p>你可能会问，为什么要把驱动放在用户空间？让它们直接在内核里跑不是更快吗？</p>
 <p>这就好比：<strong>为什么不让修水管的工人住在你家里？</strong></p>
@@ -353,7 +357,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"next":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"previous":{"title":"第一章：操作系统的世界","level":"1.2","depth":1,"path":"chapter1_intro.md","ref":"chapter1_intro.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter2_arch.md","mtime":"2025-11-24T06:43:13.873Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T06:43:27.895Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"next":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"previous":{"title":"第一章：操作系统的世界","level":"1.2","depth":1,"path":"chapter1_intro.md","ref":"chapter1_intro.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter2_arch.md","mtime":"2025-11-24T07:03:29.891Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:03:38.594Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
@@ -405,6 +409,14 @@
     </script>
     <script src="gitbook/gitbook.js"></script>
     <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/honkit-plugin-mermaid/mermaid-load.js"></script>
+        
+    
+        
+        <script src="gitbook/honkit-plugin-mermaid/mermaid.min.js"></script>
+        
     
         
         <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>

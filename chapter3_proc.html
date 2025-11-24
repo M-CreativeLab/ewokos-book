@@ -16,6 +16,10 @@
     
             
                 
+                <link rel="stylesheet" href="gitbook/honkit-plugin-mermaid/mermaid.css">
+                
+            
+                
                 <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
@@ -250,13 +254,13 @@
 <h2 id="32-进程的档案袋：proct">3.2 进程的档案袋：<code>proc_t</code></h2>
 <p>内核怎么管理这么多进程呢？它给每个进程都建了一个档案袋，叫做 <code>proc_t</code>。
 你可以在 <code>kernel/kernel/include/kernel/proc.h</code> 里找到它的定义。</p>
-<pre><code class="lang-c"><span class="hljs-keyword">typedef</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">st_proc</span> {</span>
-    <span class="hljs-keyword">procinfo_t</span>        info;           <span class="hljs-comment">// 1. 基本信息</span>
-    <span class="hljs-keyword">proc_space_t</span>*     space;          <span class="hljs-comment">// 2. 领地（内存空间）</span>
-    <span class="hljs-keyword">context_t</span>         ctx;            <span class="hljs-comment">// 3. 案发现场（上下文）</span>
-    <span class="hljs-keyword">int64_t</span>           sleep_counter;  <span class="hljs-comment">// 4. 睡眠时间</span>
-    <span class="hljs-comment">// ... 其他字段</span>
-} <span class="hljs-keyword">proc_t</span>;
+<pre><code class="lang-c">typedef struct st_proc {
+    procinfo_t        info;           // 1. 基本信息
+    proc_space_t*     space;          // 2. 领地（内存空间）
+    context_t         ctx;            // 3. 案发现场（上下文）
+    int64_t           sleep_counter;  // 4. 睡眠时间
+    // ... 其他字段
+} proc_t;
 </code></pre>
 <p>让我们打开这个档案袋看看：</p>
 <ol>
@@ -351,7 +355,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"next":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"path":"chapter4_ipc.md","ref":"chapter4_ipc.md","articles":[]},"previous":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"path":"chapter2_arch.md","ref":"chapter2_arch.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter3_proc.md","mtime":"2025-11-24T06:43:13.873Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T06:43:27.895Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"next":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"path":"chapter4_ipc.md","ref":"chapter4_ipc.md","articles":[]},"previous":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"path":"chapter2_arch.md","ref":"chapter2_arch.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter3_proc.md","mtime":"2025-11-24T07:03:29.891Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:03:38.594Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
@@ -403,6 +407,14 @@
     </script>
     <script src="gitbook/gitbook.js"></script>
     <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/honkit-plugin-mermaid/mermaid-load.js"></script>
+        
+    
+        
+        <script src="gitbook/honkit-plugin-mermaid/mermaid.min.js"></script>
+        
     
         
         <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>

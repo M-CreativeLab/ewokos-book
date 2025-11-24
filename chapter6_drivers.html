@@ -16,6 +16,10 @@
     
             
                 
+                <link rel="stylesheet" href="gitbook/honkit-plugin-mermaid/mermaid.css">
+                
+            
+                
                 <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
@@ -254,15 +258,15 @@
 <p>让我们看看时钟驱动 <code>timerd</code> (<code>system/basic/drivers/timerd/timerd.c</code>) 是怎么工作的。</p>
 <ol>
 <li><p><strong>上班打卡 (启动)</strong>：</p>
-<pre><code class="lang-c"><span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">int</span> argc, <span class="hljs-keyword">char</span>** argv)</span> </span>{
-    <span class="hljs-comment">// ... 初始化 ...</span>
-    <span class="hljs-keyword">vdevice_t</span> dev;
-    <span class="hljs-built_in">strcpy</span>(dev.name, <span class="hljs-string">&quot;timer&quot;</span>);
-    dev.dev_cntl = timer_dcntl; <span class="hljs-comment">// 设置“业务受理窗口”</span>
+<pre><code class="lang-c">int main(int argc, char** argv) {
+    // ... 初始化 ...
+    vdevice_t dev;
+    strcpy(dev.name, &quot;timer&quot;);
+    dev.dev_cntl = timer_dcntl; // 设置“业务受理窗口”
 
-    <span class="hljs-comment">// 向 VFS 注册：我负责 /dev/timer 这个地盘</span>
-    device_run(&amp;dev, <span class="hljs-string">&quot;/dev/timer&quot;</span>, FS_TYPE_CHAR, <span class="hljs-number">0666</span>);
-    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;
+    // 向 VFS 注册：我负责 /dev/timer 这个地盘
+    device_run(&amp;dev, &quot;/dev/timer&quot;, FS_TYPE_CHAR, 0666);
+    return 0;
 }
 </code></pre>
 </li>
@@ -346,7 +350,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"next":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"path":"chapter7_hands_on.md","ref":"chapter7_hands_on.md","articles":[]},"previous":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter6_drivers.md","mtime":"2025-11-24T06:43:13.873Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T06:43:27.895Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"next":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"path":"chapter7_hands_on.md","ref":"chapter7_hands_on.md","articles":[]},"previous":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter6_drivers.md","mtime":"2025-11-24T07:03:29.891Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:03:38.594Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
@@ -398,6 +402,14 @@
     </script>
     <script src="gitbook/gitbook.js"></script>
     <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/honkit-plugin-mermaid/mermaid-load.js"></script>
+        
+    
+        
+        <script src="gitbook/honkit-plugin-mermaid/mermaid.min.js"></script>
+        
     
         
         <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>

@@ -16,6 +16,10 @@
     
             
                 
+                <link rel="stylesheet" href="gitbook/honkit-plugin-mermaid/mermaid.css">
+                
+            
+                
                 <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-highlight/website.css">
                 
             
@@ -303,23 +307,23 @@
 </ol>
 <h2 id="44-核心代码赏析">4.4 核心代码赏析</h2>
 <p>IPC 的核心代码在 <code>kernel/kernel/src/ipc.c</code>。</p>
-<pre><code class="lang-c"><span class="hljs-comment">// 客户端发起呼叫</span>
-<span class="hljs-function"><span class="hljs-keyword">int32_t</span> <span class="hljs-title">ipc_call</span><span class="hljs-params">(<span class="hljs-keyword">int32_t</span> pid, <span class="hljs-keyword">int32_t</span> call_id, <span class="hljs-keyword">proto_t</span>* data)</span> </span>{
-    <span class="hljs-comment">// 1. 准备参数</span>
-    <span class="hljs-comment">// 2. 陷入内核 (System Call)</span>
-    <span class="hljs-comment">// 3. 内核将当前进程状态设为 BLOCK</span>
-    <span class="hljs-comment">// 4. 切换到其他进程</span>
+<pre><code class="lang-c">// 客户端发起呼叫
+int32_t ipc_call(int32_t pid, int32_t call_id, proto_t* data) {
+    // 1. 准备参数
+    // 2. 陷入内核 (System Call)
+    // 3. 内核将当前进程状态设为 BLOCK
+    // 4. 切换到其他进程
 }
 
-<span class="hljs-comment">// 服务端处理</span>
-<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ipc_handle_loop</span><span class="hljs-params">()</span> </span>{
-    <span class="hljs-keyword">while</span>(<span class="hljs-literal">true</span>) {
-        <span class="hljs-comment">// 1. 检查有没有任务</span>
-        <span class="hljs-keyword">int</span> id = ipc_fetch(); 
-        <span class="hljs-keyword">if</span> (id &gt; <span class="hljs-number">0</span>) {
-            <span class="hljs-comment">// 2. 处理任务</span>
+// 服务端处理
+void ipc_handle_loop() {
+    while(true) {
+        // 1. 检查有没有任务
+        int id = ipc_fetch(); 
+        if (id &gt; 0) {
+            // 2. 处理任务
             do_work();
-            <span class="hljs-comment">// 3. 告诉内核完事了</span>
+            // 3. 告诉内核完事了
             ipc_end();
         }
     }
@@ -370,7 +374,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"next":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"previous":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter4_ipc.md","mtime":"2025-11-24T06:43:13.873Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T06:43:27.895Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"next":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"previous":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter4_ipc.md","mtime":"2025-11-24T07:03:29.891Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:03:38.594Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
@@ -422,6 +426,14 @@
     </script>
     <script src="gitbook/gitbook.js"></script>
     <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/honkit-plugin-mermaid/mermaid-load.js"></script>
+        
+    
+        
+        <script src="gitbook/honkit-plugin-mermaid/mermaid.min.js"></script>
+        
     
         
         <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
