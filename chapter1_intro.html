@@ -256,8 +256,40 @@
 <li>它管理硬件：确保 CPU 不会无所事事，内存不会被乱用。</li>
 <li>它服务软件：给应用程序提供一个舒适的运行环境（就像给乐高积木提供底板）。</li>
 </ul>
-<h2 id="12-宏内核-vs-微内核：超市-vs-购物中心">1.2 宏内核 vs 微内核：超市 vs 购物中心</h2>
-<p>在操作系统的设计哲学中，有两大门派：<strong>宏内核 (Monolithic Kernel)</strong> 和 <strong>微内核 (Microkernel)</strong>。</p>
+<h3 id="操作系统的诞生：从混沌到秩序">操作系统的诞生：从混沌到秩序</h3>
+<p>让我们回到 1950 年代。那时的计算机巨大、昂贵，每小时的运行成本高达数千美元。程序员需要预约时间，带着打孔卡片来到机房，亲手把程序输入计算机。如果程序有 bug？抱歉，你的时间用完了，下次再来吧！</p>
+<p>这种效率低下的情况催生了<strong>批处理系统 (Batch Processing System)</strong>。IBM 在 1960 年代开发的 OS/360 就是这样一个系统：它可以自动加载一批程序，依次执行，不需要人工干预。这是操作系统的雏形——<strong>自动化管理硬件资源</strong>。</p>
+<p>但程序员们还不满足。他们想要<strong>同时</strong>运行多个程序，想要<strong>交互式</strong>地调试代码。于是在 1960 年代末，MIT、贝尔实验室和通用电气联手开发了 <strong>Multics</strong>（Multiplexed Information and Computing Service）。这个项目虽然最终失败了（太复杂、太慢），但它提出的许多概念——分时系统、虚拟内存、文件系统——成为了现代操作系统的基石。</p>
+<p>从 Multics 的废墟中，贝尔实验室的 Ken Thompson 和 Dennis Ritchie 于 1969 年创造了 <strong>Unix</strong>。他们的设计哲学非常简单：&quot;<strong>简单即美</strong>&quot;。Unix 精简、高效，并提出了&quot;<strong>一切皆文件</strong>&quot;的革命性理念。这个理念深刻影响了后续几十年的操作系统设计，包括我们今天要学习的 EwokOS。</p>
+<h2 id="12-内核：操作系统的核心">1.2 内核：操作系统的核心</h2>
+<p>在深入探讨不同类型的操作系统之前，我们需要先理解一个核心概念：<strong>内核 (Kernel)</strong>。</p>
+<p><strong>内核是操作系统的核心部分</strong>，它直接运行在硬件之上，拥有访问所有硬件资源的最高权限。可以把内核想象成一座大厦的地基和承重墙——它支撑着整个系统的运行，但用户通常看不到它。</p>
+<h3 id="内核的职责">内核的职责</h3>
+<p>内核主要负责以下几个关键任务：</p>
+<ol>
+<li><strong>进程管理</strong>：决定哪个程序可以使用 CPU，何时切换到另一个程序</li>
+<li><strong>内存管理</strong>：分配和回收内存，确保进程之间互不干扰</li>
+<li><strong>设备管理</strong>：控制硬件设备（键盘、硬盘、网卡等）</li>
+<li><strong>系统调用接口</strong>：为应用程序提供访问硬件的安全通道</li>
+</ol>
+<h3 id="为什么需要内核？">为什么需要内核？</h3>
+<p>想象一下，如果没有内核：</p>
+<ul>
+<li>每个程序都可以随意访问硬件，可能会相互冲突（两个程序同时往屏幕写数据会怎样？）</li>
+<li>恶意程序可以直接读取其他程序的内存，窃取密码和隐私</li>
+<li>程序崩溃时可能导致整个计算机死机</li>
+</ul>
+<p><strong>内核就像一个严格的管家</strong>，它在应用程序和硬件之间建立了一道防护墙，确保系统的安全和稳定。</p>
+<h3 id="用户空间-vs-内核空间">用户空间 vs 内核空间</h3>
+<p>现代操作系统将系统分为两个世界：</p>
+<ul>
+<li><strong>内核空间 (Kernel Space)</strong>：内核运行的特权区域，可以执行任何指令，访问任何硬件</li>
+<li><strong>用户空间 (User Space)</strong>：普通应用程序运行的区域，权限受限，不能直接访问硬件</li>
+</ul>
+<p>当应用程序需要访问硬件时（如读取文件），它必须通过<strong>系统调用 (System Call)</strong> 请求内核帮忙。这就像住户需要找物业管理处开门一样——确保安全，避免混乱。</p>
+<p>现在我们理解了内核的概念，接下来的问题是：<strong>内核应该包含哪些功能？哪些应该放在内核里，哪些应该放在外面？</strong> 这就引出了操作系统设计的两大流派。</p>
+<h2 id="13-宏内核-vs-微内核：超市-vs-购物中心">1.3 宏内核 vs 微内核：超市 vs 购物中心</h2>
+<p>在操作系统的设计哲学中，对于内核应该有多&quot;大&quot;，有两大门派：<strong>宏内核 (Monolithic Kernel)</strong> 和 <strong>微内核 (Microkernel)</strong>。</p>
 <p>我们可以用<strong>超市</strong>和<strong>购物中心</strong>来打个比方。</p>
 <h3 id="宏内核：超级大超市-the-supermarket">宏内核：超级大超市 (The Supermarket)</h3>
 <p>Linux、Windows (早期) 都是宏内核的代表。</p>
@@ -294,38 +326,130 @@
 </li>
 <li><strong>缺点</strong>：<strong>效率稍低</strong>。你在生鲜超市买完东西，想去电器行，得先出门，走过公共走廊（IPC），再进电器行。这中间的跑腿费（上下文切换、消息传递）比在超市里转身要贵。</li>
 </ul>
-<h2 id="13-为什么选择-ewokos？">1.3 为什么选择 EwokOS？</h2>
+<h3 id="微内核的崛起：一场学术界与工业界的对决">微内核的崛起：一场学术界与工业界的对决</h3>
+<p>微内核的理念并不新。早在 1970 年代，CMU（卡内基梅隆大学）就开发了 <strong>Mach</strong> 微内核。它试图将 Unix 的功能拆分，只在内核保留最小的必要功能。然而，Mach 在当时并没有获得广泛成功——它太慢了，因为频繁的进程间通信成为了性能瓶颈。</p>
+<p>1987 年，Andrew Tanenbaum 教授为了教学目的开发了 <strong>Minix</strong>，一个简洁的微内核教学操作系统。当时还是学生的 Linus Torvalds 就是在 Minix 上学习操作系统的。然而，当 Linus 想要为 Minix 添加新功能时，Tanenbaum 拒绝了——他坚持 Minix 应该保持简单和教学纯粹性。</p>
+<p>这个分歧引发了计算机历史上最著名的一场辩论：<strong>Tanenbaum-Torvalds 论战</strong>（1992 年）。Tanenbaum 主张微内核是未来，而 Linus 则认为宏内核更实用。Linus 一气之下，创造了 Linux——一个宏内核操作系统。讽刺的是，30 年后，Linux 成为了世界上最成功的操作系统之一。</p>
+<p>但故事还没有结束。进入 21 世纪，随着物联网和嵌入式系统的兴起，<strong>可靠性</strong>和<strong>安全性</strong>比性能更加重要。Google 在 2016 年开始开发 <strong>Fuchsia</strong>，一个现代化的微内核操作系统，试图挑战 Android 和 iOS 的地位。苹果的 iOS 底层的 XNU 内核也融合了 Mach 微内核的设计。</p>
+<p>历史证明，<strong>没有绝对的赢家</strong>。宏内核和微内核各有所长，关键在于选择适合场景的架构。</p>
+<h2 id="14-为什么选择-ewokos？">1.4 为什么选择 EwokOS？</h2>
 <p>既然微内核效率低，为什么我们还要学它？</p>
-<ol>
-<li><strong>简单清晰</strong>：宏内核像一团乱麻，微内核像积木。EwokOS 的代码结构非常清晰，你可以清楚地看到“物业”是怎么工作的，“店铺”是怎么经营的。</li>
-<li><strong>未来趋势</strong>：随着物联网 (IoT) 和高可靠性系统的兴起，微内核的稳定性优势越来越重要。Google 的 Fuchsia 就是微内核。</li>
-<li><strong>好玩</strong>：在 EwokOS 里，你可以像写普通程序一样写驱动。写个贪吃蛇游戏？不，我们来写个贪吃蛇驱动！</li>
-</ol>
-<h2 id="14-ewokos-的特色功能">1.4 EwokOS 的特色功能</h2>
+<h3 id="1-简单清晰：架构优雅易懂">1. 简单清晰：架构优雅易懂</h3>
+<p>宏内核像一团乱麻，微内核像积木。EwokOS 的代码结构非常清晰，你可以清楚地看到&quot;物业&quot;是怎么工作的，&quot;店铺&quot;是怎么经营的。</p>
+<ul>
+<li><strong>代码量小</strong>：EwokOS 的微内核只有几千行代码，相比之下 Linux 内核有数百万行。你可以在一两周内读完整个内核的核心代码。</li>
+<li><strong>模块化设计</strong>：每个组件（VFS、驱动、服务）都是独立的进程，职责清晰，耦合度低。想理解文件系统？只需要看 VFS 进程的代码即可。</li>
+<li><strong>易于调试</strong>：驱动崩溃不会拖垮整个系统。你可以用 GDB 单步调试驱动，就像调试普通程序一样简单。</li>
+</ul>
+<h3 id="2-未来趋势：物联网和高可靠系统的首选">2. 未来趋势：物联网和高可靠系统的首选</h3>
+<p>随着物联网 (IoT) 和高可靠性系统的兴起，微内核的稳定性优势越来越重要：</p>
+<ul>
+<li><strong>Google Fuchsia</strong>：Google 正在开发的新操作系统，采用 Zircon 微内核，目标是取代 Android</li>
+<li><strong>汽车电子</strong>：QNX 微内核被广泛应用于汽车仪表盘和自动驾驶系统（如特斯拉）</li>
+<li><strong>医疗设备</strong>：微内核的故障隔离特性使其成为生命攸关设备的理想选择</li>
+<li><strong>航空航天</strong>：需要极高可靠性的场景，微内核的容错能力至关重要</li>
+</ul>
+<h3 id="3-好玩：编写驱动就像写普通程序">3. 好玩：编写驱动就像写普通程序</h3>
+<p>在 EwokOS 里，你可以像写普通程序一样写驱动：</p>
+<ul>
+<li><strong>不需要特殊权限</strong>：驱动是用户空间进程，可以用标准 C 库函数</li>
+<li><strong>快速迭代</strong>：修改驱动后，只需重启驱动进程，无需重启整个系统</li>
+<li><strong>创意无限</strong>：写个贪吃蛇游戏？不，我们来写个贪吃蛇驱动，让它在内核层面运行！</li>
+</ul>
+<h3 id="ewokos-如何克服微内核的效率问题？">EwokOS 如何克服微内核的效率问题？</h3>
+<p>你可能会担心：微内核的 IPC 通信不是很慢吗？EwokOS 通过以下方式优化性能：</p>
+<p><strong>1. 零拷贝共享内存</strong>
+对于大数据传输（如视频流、文件内容），EwokOS 使用<strong>共享内存 (Shared Memory)</strong> 机制：</p>
+<ul>
+<li>进程 A 和进程 B 直接共享同一块物理内存</li>
+<li>数据不需要复制，只传递指针</li>
+<li>性能接近直接内存访问</li>
+</ul>
+<p><strong>2. 快速 IPC 实现</strong>
+EwokOS 的 IPC 机制经过精心优化：</p>
+<ul>
+<li><strong>同步 IPC</strong>：直接在内核中完成上下文切换，避免多余的调度开销</li>
+<li><strong>消息池</strong>：预分配消息缓冲区，避免频繁的内存分配</li>
+<li><strong>优先级继承</strong>：防止优先级反转问题</li>
+</ul>
+<p><strong>3. 批处理和异步 I/O</strong>
+对于 I/O 密集型操作：</p>
+<ul>
+<li>批量处理多个 I/O 请求，减少 IPC 次数</li>
+<li>驱动支持异步操作，避免阻塞等待</li>
+</ul>
+<p><strong>一般而言，微内核效率低的部分有</strong>：</p>
+<ul>
+<li><strong>频繁的上下文切换</strong>：每次 IPC 都需要切换进程，开销较大</li>
+<li><strong>数据拷贝</strong>：消息传递需要复制数据，增加延迟</li>
+<li><strong>多次内核态/用户态切换</strong>：系统调用开销累积</li>
+</ul>
+<p>EwokOS 通过上述优化手段，将这些开销降到最低。实测表明，在典型应用场景下，EwokOS 的性能损失在 10%-20% 之间，而获得的稳定性和可维护性提升远超这一成本。</p>
+<h2 id="15-ewokos-的特色功能">1.5 EwokOS 的特色功能</h2>
 <p>EwokOS 虽然小，但功能一点也不简单：</p>
 <h3 id="多核支持-smp">多核支持 (SMP)</h3>
-<p>现代 CPU 都有多个核心，EwokOS 支持<strong>对称多处理 (SMP, Symmetric Multi-Processing)</strong>。这意味着多个 CPU 核心可以同时工作，就像多个厨师可以同时在不同的灶台上做菜。每个核心都能独立调度进程，大大提升了系统的并行处理能力。</p>
-<h3 id="32-位与-64-位双架构">32 位与 64 位双架构</h3>
-<p>EwokOS 同时支持 32 位和 64 位架构。你可以在老式的 Raspberry Pi 1（32 位 ARMv6）上运行，也可以在最新的 Raspberry Pi 4（64 位 ARMv8）上运行。这种灵活性让你可以在各种硬件平台上学习和实验。</p>
-<h3 id="写时复制-copy-on-write">写时复制 (Copy-On-Write)</h3>
-<p>当你 <code>fork()</code> 一个进程时，传统做法是把父进程的所有内存都复制一份给子进程。但这样很浪费！EwokOS 使用了<strong>写时复制 (COW)</strong> 技术：</p>
+<p>现代 CPU 都有多个核心，EwokOS 支持<strong>对称多处理 (SMP, Symmetric Multi-Processing)</strong>。这意味着多个 CPU 核心可以同时工作，就像多个厨师可以同时在不同的灶台上做菜。</p>
+<p><strong>技术细节</strong>：</p>
 <ul>
-<li>父子进程最初共享同一份物理内存。</li>
-<li>只有当其中一个进程试图修改某个页面时，才真正复制那个页面。</li>
-<li>就像两个人看同一本书，只有当一个人想在书上做笔记时，才给他复印一份。</li>
+<li>每个 CPU 核心运行独立的调度器，维护自己的就绪队列</li>
+<li>支持<strong>负载均衡</strong>：当某个核心空闲时，可以从其他核心&quot;偷&quot;进程来执行</li>
+<li>使用<strong>自旋锁 (Spinlock)</strong> 保护共享数据结构，避免竞态条件</li>
+<li>支持<strong>核间中断 (IPI)</strong>：一个核心可以向其他核心发送中断信号</li>
 </ul>
-<p>这大大提高了 <code>fork()</code> 的效率，节省了内存。</p>
+<p><strong>为什么重要</strong>：在四核 Raspberry Pi 上，多核支持可以让系统同时处理四个任务，充分利用硬件资源。</p>
+<h3 id="32-位与-64-位双架构">32 位与 64 位双架构</h3>
+<p>EwokOS 同时支持 32 位和 64 位架构。你可以在老式的 Raspberry Pi 1（32 位 ARMv6）上运行，也可以在最新的 Raspberry Pi 4（64 位 ARMv8）上运行。</p>
+<p><strong>技术细节</strong>：</p>
+<ul>
+<li><strong>32 位模式</strong>：地址空间为 4GB，适合资源受限的嵌入式设备</li>
+<li><strong>64 位模式</strong>：虚拟地址空间理论上可达 16EB，实际常用 48 位寻址（256TB），足以支持现代应用的大内存和大文件需求</li>
+<li>相同的源代码，不同的编译目标，充分展示了 EwokOS 的可移植性</li>
+</ul>
+<p><strong>为什么重要</strong>：这种灵活性让你可以在各种硬件平台上学习和实验，从低端单片机到高性能开发板都能运行。</p>
+<h3 id="写时复制-copy-on-write">写时复制 (Copy-On-Write)</h3>
+<p>当你 <code>fork()</code> 一个进程时，传统做法是把父进程的所有内存都复制一份给子进程。但这样很浪费！EwokOS 使用了<strong>写时复制 (COW)</strong> 技术。</p>
+<p><strong>工作原理</strong>：</p>
+<ul>
+<li>父子进程最初共享同一份物理内存</li>
+<li>页表项标记为&quot;只读&quot;</li>
+<li>当任何一方试图写入时，触发<strong>缺页异常 (Page Fault)</strong></li>
+<li>内核分配新页面，复制内容，更新页表</li>
+</ul>
+<p><strong>类比</strong>：就像两个人看同一本书，只有当一个人想在书上做笔记时，才给他复印一份。</p>
+<p><strong>为什么重要</strong>：大大提高了 <code>fork()</code> 的效率，节省了内存。在 Shell 启动程序的典型场景（<code>fork()</code> 后立即 <code>exec()</code>），几乎不需要复制任何内存。</p>
 <h3 id="丰富的硬件支持">丰富的硬件支持</h3>
 <p>EwokOS 不仅能在 QEMU 虚拟机上运行，还支持真实硬件：</p>
+<p><strong>树莓派系列</strong>：</p>
 <ul>
-<li><strong>Raspberry Pi 系列</strong>：从 Pi 1 到 Pi 4，甚至 Pi 5 也在开发中</li>
-<li><strong>ARM Versatile PB</strong>：经典的 ARM 开发板</li>
-<li><strong>Miyoo 掌机</strong>：嵌入式游戏设备</li>
-<li><strong>Orange Pi</strong>：国产开源硬件</li>
-<li><strong>各种 Rockchip 芯片</strong>：RK3128, RK3506 等</li>
+<li>Raspberry Pi 1 (ARMv6, 单核, 700MHz)</li>
+<li>Raspberry Pi 2 (ARMv7, 4核, 900MHz)</li>
+<li>Raspberry Pi 3 (ARMv8-64bit, 4核, 1.2GHz)</li>
+<li>Raspberry Pi 4 (ARMv8-64bit, 4核, 1.5GHz, 支持 4GB/8GB RAM)</li>
+<li>Raspberry Pi 5 (开发中)</li>
 </ul>
-<p>你可以把 EwokOS 刷到 SD 卡上，在真实硬件上运行，感受操作系统从零启动的震撼。</p>
-<p>准备好进入购物中心的物业管理处了吗？下一章，我们将深入 EwokOS 的内部架构。</p>
+<p><strong>其他开发板</strong>：</p>
+<ul>
+<li>ARM Versatile PB：经典的 ARM 开发板，QEMU 完美支持</li>
+<li>Orange Pi：国产开源硬件，价格亲民</li>
+<li>Miyoo 掌机：嵌入式游戏设备，展示 EwokOS 的便携性</li>
+<li>各种 Rockchip 芯片：RK3128, RK3506 等，面向工业应用</li>
+</ul>
+<p><strong>为什么重要</strong>：你可以把 EwokOS 刷到 SD 卡上，在真实硬件上运行，感受操作系统从零启动的震撼。这种&quot;从虚拟到现实&quot;的体验，是学习操作系统最好的方式。</p>
+<h2 id="16-本章小结与展望">1.6 本章小结与展望</h2>
+<p>我们已经踏上了操作系统探险的旅程。让我们回顾一下学到的关键概念：</p>
+<ul>
+<li><strong>操作系统的本质</strong>：是硬件和软件之间的翻译官和管家，从 1950 年代的批处理系统进化到今天的多任务、分时系统。</li>
+<li><strong>设计哲学之争</strong>：宏内核追求效率，像一个大型超市；微内核追求稳定和灵活，像一个现代购物中心。这场争论持续了半个世纪，至今仍在继续。</li>
+<li><strong>EwokOS 的定位</strong>：一个为学习而生的微内核操作系统，继承了 Unix 的简洁哲学和微内核的现代架构。</li>
+</ul>
+<p>你可能会想：这些抽象的概念很有趣，但具体是怎么实现的呢？微内核的&quot;物业管理处&quot;到底长什么样？各个&quot;店铺&quot;是如何运作和沟通的？</p>
+<p><strong>这就是下一章的内容</strong>。我们将打开 EwokOS 的引擎盖，近距离观察它的架构设计。你会看到：</p>
+<ul>
+<li>微内核如何像一个极简主义艺术家，只用几千行代码就实现了核心功能</li>
+<li>Core、VFS 等服务进程如何在用户空间协同工作</li>
+<li>一个系统调用如何从应用程序流经各个组件，最终触达硬件</li>
+</ul>
+<p>准备好进入购物中心的物业管理处了吗？让我们揭开 EwokOS 架构的神秘面纱。</p>
 
                                 
                                 </section>
@@ -369,7 +493,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第一章：操作系统的世界","level":"1.2","depth":1,"next":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"path":"chapter2_arch.md","ref":"chapter2_arch.md","articles":[]},"previous":{"title":"前言","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter1_intro.md","mtime":"2025-11-24T07:13:09.148Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:13:18.146Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第一章：操作系统的世界","level":"1.2","depth":1,"next":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"path":"chapter2_arch.md","ref":"chapter2_arch.md","articles":[]},"previous":{"title":"前言","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter1_intro.md","mtime":"2025-11-24T12:59:19.137Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T12:59:28.256Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

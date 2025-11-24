@@ -242,6 +242,9 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="第六章：打工魂---驱动与-vfs">第六章：打工魂 - 驱动与 VFS</h1>
+<p>从前几章，我们知道了进程如何运行、如何通信、如何分配内存。但这些都是软件世界的规则。现在我们要跨越一个关键的边界——<strong>软件如何控制硬件？</strong></p>
+<p>键盘、鼠标、硬盘、显卡……这些设备千差万别，每个都有自己的&quot;语言&quot;（寄存器、端口、协议）。如果每个应用程序都要学会如何直接操作硬件，那将是一场噩梦。这就是<strong>驱动程序（Device Driver）</strong>存在的意义。</p>
+<p>而在微内核架构中，驱动有一个革命性的设计：<strong>它们不是内核的一部分，而是普通的用户进程</strong>。</p>
 <h2 id="61-驱动：我也是个普通人">6.1 驱动：我也是个普通人</h2>
 <p>在宏内核里，驱动是拥有至高无上权力的“御前侍卫”。
 在微内核里，驱动只是一个普通的“打工仔”。</p>
@@ -397,7 +400,31 @@
 <li>驱动读取分区超级块，建立目录索引。</li>
 <li>VFS 将挂载点加入全局挂载表。</li>
 </ol>
-<p>虽然中间隔了个 VFS，看起来有点繁琐，但它统一了接口。用户程序不需要知道对面是硬盘还是串口，只需要会 <code>open/read/write</code> 三板斧就行了。</p>
+<h2 id="67-本章小结与展望">6.7 本章小结与展望</h2>
+<p>我们刚刚探索了微内核的&quot;服务窗口&quot;——驱动与 VFS。让我们回顾关键点：</p>
+<ul>
+<li><strong>驱动的革命</strong>：从内核态的&quot;御前侍卫&quot;变成用户态的&quot;打工仔&quot;，带来了前所未有的稳定性</li>
+<li><strong>VFS 的智慧</strong>：统一接口，&quot;一切皆文件&quot;，让应用程序无需关心底层细节</li>
+<li><strong>真实案例</strong>：Windows 蓝屏 85% 由驱动导致，微内核架构从根本上避免了这个问题</li>
+<li><strong>挂载机制</strong>：将各种设备和文件系统组织成一棵虚拟文件树</li>
+</ul>
+<p>我们已经理解了 EwokOS 的核心机制：</p>
+<ul>
+<li><strong>进程管理</strong>（心脏）：如何调度和切换进程</li>
+<li><strong>IPC</strong>（神经系统）：进程如何通信</li>
+<li><strong>内存管理</strong>（土地规划）：如何分配和保护内存</li>
+<li><strong>驱动与 VFS</strong>（服务窗口）：如何访问硬件和文件</li>
+</ul>
+<p>理论已经足够了。现在，是时候<strong>把手弄脏</strong>了！</p>
+<p><strong>这就是下一章的主题——编译与运行</strong>。我们将：</p>
+<ul>
+<li>亲手编译 EwokOS 内核和系统</li>
+<li>在 QEMU 模拟器上运行它</li>
+<li>把它刷到真实的 Raspberry Pi 上</li>
+<li>使用 GDB 调试内核</li>
+<li>编写你的第一个 EwokOS 应用程序</li>
+</ul>
+<p>从理论到实践，从阅读代码到编写代码，从虚拟机到真实硬件——让我们完成这最后的冲刺！</p>
 
                                 
                                 </section>
@@ -441,7 +468,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"next":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"path":"chapter7_hands_on.md","ref":"chapter7_hands_on.md","articles":[]},"previous":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter6_drivers.md","mtime":"2025-11-24T07:13:09.149Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:13:18.146Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"next":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"path":"chapter7_hands_on.md","ref":"chapter7_hands_on.md","articles":[]},"previous":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter6_drivers.md","mtime":"2025-11-24T12:59:19.138Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T12:59:28.256Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

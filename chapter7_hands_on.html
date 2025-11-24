@@ -240,8 +240,10 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="第七章：把手弄脏---编译与运行">第七章：把手弄脏 - 编译与运行</h1>
-<p>纸上得来终觉浅，绝知此事要躬行。
-看完了理论，是时候亲手把 EwokOS 跑起来了！</p>
+<p>纸上得来终觉浅，绝知此事要躬行。</p>
+<p>前面六章，我们从理论层面理解了 EwokOS 的方方面面：架构、进程、IPC、内存、驱动。现在，让我们从读者变成实践者，亲手把 EwokOS 运行起来。</p>
+<p>就像学习游泳，看再多视频也比不上跳进水里试一次。操作系统也是一样——只有当你看到内核从零启动，看到 Shell 提示符出现，你才会真正理解这些抽象概念是如何变成现实的。</p>
+<p>准备好了吗？让我们开始这段实践之旅。</p>
 <h2 id="71-准备工作">7.1 准备工作</h2>
 <p>你需要一台 Linux 或 macOS 电脑。Windows 用户建议使用 WSL2。</p>
 <h3 id="安装工具链">安装工具链</h3>
@@ -450,6 +452,63 @@ cat /proc/<pid>/maps
 <li>移植到真实硬件，体验完整流程</li>
 </ol>
 <p>操作系统不再是黑盒，你已经掌握了打开它的钥匙！</p>
+<h2 id="79-你的操作系统之旅才刚刚开始">7.9 你的操作系统之旅才刚刚开始</h2>
+<p>恭喜你！你已经完成了这本 EwokOS 入门指南。从理论到实践，从架构到代码，你已经掌握了微内核操作系统的核心知识。</p>
+<p>但这只是开始。操作系统是一个博大精深的领域，还有无数有趣的话题等待探索：</p>
+<h3 id="继续学习的方向">继续学习的方向</h3>
+<p><strong>1. 深入 EwokOS 源码</strong></p>
+<ul>
+<li>研究调度器的实现细节，理解抢占式调度</li>
+<li>跟踪一次系统调用的完整路径</li>
+<li>分析内存管理的页表数据结构</li>
+<li>阅读 VFS 的源码，理解文件系统如何工作</li>
+</ul>
+<p><strong>2. 编写自己的驱动</strong></p>
+<ul>
+<li>为 LED 编写一个简单的驱动</li>
+<li>实现一个虚拟的字符设备</li>
+<li>移植一个新的文件系统（如 FAT32）</li>
+<li>为新的硬件平台适配 EwokOS</li>
+</ul>
+<p><strong>3. 性能优化</strong></p>
+<ul>
+<li>分析系统的性能瓶颈</li>
+<li>优化 IPC 的效率</li>
+<li>实现更先进的调度算法（如 CFS）</li>
+<li>改进内存分配器</li>
+</ul>
+<p><strong>4. 对比其他操作系统</strong></p>
+<ul>
+<li>阅读 Linux 内核源码，对比宏内核的设计</li>
+<li>研究 Minix 3，Andrew Tanenbaum 的现代微内核</li>
+<li>了解 Fuchsia，Google 的下一代操作系统</li>
+<li>学习 seL4，世界上第一个形式化验证的微内核</li>
+</ul>
+<h3 id="一些建议">一些建议</h3>
+<p><strong>从简单开始</strong>：不要试图一次理解所有东西。选择一个感兴趣的模块（如调度器），深入研究它。</p>
+<p><strong>动手实践</strong>：修改代码，看看会发生什么。故意引入 bug，然后用 GDB 调试。失败是最好的老师。</p>
+<p><strong>阅读经典</strong>：</p>
+<ul>
+<li>《Operating System Concepts》（恐龙书）- 理论基础</li>
+<li>《Operating Systems: Design and Implementation》（Tanenbaum）- Minix 的设计</li>
+<li>《Linux Kernel Development》- Linux 内核实践</li>
+</ul>
+<p><strong>加入社区</strong>：</p>
+<ul>
+<li>EwokOS GitHub 仓库：<a href="https://github.com/MisaZhu/ewokos" target="_blank">https://github.com/MisaZhu/ewokos</a></li>
+<li>提交 Issue，贡献代码</li>
+<li>与其他爱好者交流</li>
+</ul>
+<h3 id="最后的话">最后的话</h3>
+<p>操作系统不再是一个黑盒子。你已经看到了它的内部运作，理解了它的设计哲学。无论你将来从事什么方向的开发——Web、移动、嵌入式、游戏——这些知识都会让你成为更优秀的工程师。</p>
+<p>记住，每一个伟大的操作系统都始于一个简单的想法：</p>
+<ul>
+<li>Unix 始于&quot;简单即美&quot;</li>
+<li>Linux 始于一个学生的业余项目</li>
+<li>EwokOS 始于对微内核的热爱</li>
+</ul>
+<p>也许有一天，你会创造出属于自己的操作系统。那时，请记得这段学习之旅。</p>
+<p><strong>操作系统的世界永远欢迎你。继续探索，继续创造！</strong></p>
 
                                 
                                 </section>
@@ -489,7 +548,7 @@ cat /proc/<pid>/maps
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"previous":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"path":"chapter6_drivers.md","ref":"chapter6_drivers.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter7_hands_on.md","mtime":"2025-11-24T07:13:09.149Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:13:18.146Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第七章：把手弄脏 - 编译与运行","level":"1.8","depth":1,"previous":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"path":"chapter6_drivers.md","ref":"chapter6_drivers.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter7_hands_on.md","mtime":"2025-11-24T12:59:19.138Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T12:59:28.256Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

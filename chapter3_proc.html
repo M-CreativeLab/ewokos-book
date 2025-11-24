@@ -242,6 +242,7 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="第三章：幕后黑手---进程与线程">第三章：幕后黑手 - 进程与线程</h1>
+<p>在上一章中，我们从架构层面理解了 EwokOS 的整体设计。现在，让我们深入系统的&quot;心脏&quot;——进程管理。这是操作系统最核心、最迷人的部分。如果没有进程管理，再强大的硬件也只能像一个傻瓜一样，一次只做一件事。</p>
 <h2 id="31-什么是进程？">3.1 什么是进程？</h2>
 <p>如果 CPU 是一个做菜的厨师，<strong>进程 (Process)</strong> 就是一道正在做的菜。</p>
 <ul>
@@ -251,6 +252,11 @@
 <li><strong>PC 指针</strong>：厨师读到了菜谱的哪一行。</li>
 </ul>
 <p>在 EwokOS 中，进程是资源分配的最小单位。每个进程都有自己独立的厨房（内存空间），互不干扰。</p>
+<h3 id="进程的诞生：unix-的革命性创新">进程的诞生：Unix 的革命性创新</h3>
+<p>进程的概念看似简单，但它的发明却是计算机历史上的一次重大突破。</p>
+<p>在 Unix 诞生之前（1960 年代），大多数操作系统使用的是<strong>作业 (Job)</strong> 的概念。一个作业从开始到结束，独占整个计算机。想要同时运行多个程序？你需要等第一个跑完，或者买更多计算机。</p>
+<p>1969 年，Ken Thompson 和 Dennis Ritchie 在开发 Unix 时，创造性地引入了<strong>进程抽象</strong>。他们的核心洞察是：<strong>让每个程序都以为自己独占了整个计算机，但实际上操作系统在幕后快速切换</strong>。这就像魔术师的手法——观众看到的是连续的动作，实际上是一系列快速的离散操作。</p>
+<p>这个设计如此成功，以至于 50 多年后的今天，几乎所有操作系统（包括 Windows、Linux、macOS、iOS、Android）都沿用了这个抽象。EwokOS 也不例外。</p>
 <h2 id="32-进程的档案袋：proct">3.2 进程的档案袋：<code>proc_t</code></h2>
 <p>内核怎么管理这么多进程呢？它给每个进程都建了一个档案袋，叫做 <code>proc_t</code>。
 你可以在 <code>kernel/kernel/include/kernel/proc.h</code> 里找到它的定义。</p>
@@ -335,6 +341,32 @@
     proc_load(ctx);
 }
 </code></pre>
+<h3 id="调度算法的演变：从简单到复杂">调度算法的演变：从简单到复杂</h3>
+<p>让我们看看调度算法是如何演化的：</p>
+<p><strong>1. 先来先服务 (FCFS, First-Come-First-Served)</strong></p>
+<ul>
+<li>最简单的算法：谁先到谁先执行。</li>
+<li>问题：如果第一个进程需要运行 1 小时，后面的进程就要等 1 小时。这就是著名的<strong>护航效应 (Convoy Effect)</strong>。</li>
+</ul>
+<p><strong>2. 时间片轮转 (Round Robin)</strong></p>
+<ul>
+<li>每个进程分配固定的时间片（如 10ms），时间到了就轮换。</li>
+<li>这是早期分时系统（1960 年代）的标准算法。</li>
+<li>问题：所有进程都是平等的，没有优先级区分。</li>
+</ul>
+<p><strong>3. 优先级调度 (Priority Scheduling)</strong></p>
+<ul>
+<li>EwokOS 使用的算法。每个进程有优先级，高优先级优先执行。</li>
+<li>问题：低优先级进程可能<strong>饿死 (Starvation)</strong>——永远得不到执行。</li>
+<li>解决方案：<strong>优先级老化 (Aging)</strong>——等待时间越长，优先级逐渐提升。</li>
+</ul>
+<p><strong>4. 完全公平调度器 (CFS, Completely Fair Scheduler)</strong></p>
+<ul>
+<li>Linux 2.6.23（2007 年）引入的现代调度器。</li>
+<li>使用红黑树跟踪每个进程的&quot;虚拟运行时间&quot;，确保所有进程获得公平的 CPU 时间。</li>
+<li>这是目前最先进的通用调度算法之一。</li>
+</ul>
+<p>EwokOS 选择了优先级调度，因为它简单、高效，非常适合嵌入式系统和实时应用。对于学习来说，也更容易理解。</p>
 <h3 id="多核调度-smp-scheduling">多核调度 (SMP Scheduling)</h3>
 <p>在多核系统中，每个 CPU 核心都有自己的调度器。EwokOS 实现了<strong>负载均衡</strong>：</p>
 <ul>
@@ -364,7 +396,24 @@
 <li>它们共享同一份食材（全局变量）。</li>
 </ul>
 <p>在 EwokOS 中，线程被视为“共享地址空间的进程”。它们有自己的 <code>ctx</code> 和栈，但共用 <code>space</code>。</p>
-<p>下一章，我们将看看这些独立的进程是如何“打电话”沟通的。</p>
+<h2 id="36-本章小结与展望">3.6 本章小结与展望</h2>
+<p>我们刚刚完成了一次深入操作系统心脏的旅程。让我们回顾一下学到的核心概念：</p>
+<ul>
+<li><strong>进程抽象</strong>：Unix 在 1969 年发明的革命性概念，让多个程序可以&quot;同时&quot;运行在单个 CPU 上</li>
+<li><strong>进程状态</strong>：从 NEW 到 READY，再到 RUNNING、WAIT/BLOCK，最后到 ZOMBIE，每个进程都经历着生命周期</li>
+<li><strong>调度算法</strong>：从最简单的 FCFS 到现代的 CFS，操作系统一直在追求更公平、更高效的 CPU 分配</li>
+<li><strong>多核挑战</strong>：如何让多个 CPU 核心高效协作而不互相干扰，这是现代操作系统必须面对的难题</li>
+</ul>
+<p>但这里有一个关键问题我们还没有回答：在微内核架构中，所有的服务（VFS、驱动等）都是独立的进程，它们有自己独立的内存空间。那么，<strong>Shell 如何告诉 VFS&quot;我要读取文件&quot;？驱动如何把数据返回给应用程序？</strong></p>
+<p>在宏内核中，这很简单——大家都在同一个内存空间，直接调用函数就行了。但在微内核中，进程之间是完全隔离的，不能直接访问对方的内存。这就需要一个特殊的机制来传递消息和数据。</p>
+<p><strong>这就是下一章的主题——IPC（进程间通信）</strong>。我们将看到：</p>
+<ul>
+<li>微内核如何像一个高效的邮局，在进程之间传递消息</li>
+<li>同步 IPC 和异步 IPC 的区别——打电话 vs 发邮件</li>
+<li>共享内存如何实现零拷贝的高效数据传输</li>
+<li>IPC 如何成为微内核架构的&quot;神经系统&quot;</li>
+</ul>
+<p>进程管理解决了&quot;谁来用 CPU&quot;的问题，而 IPC 将解决&quot;进程之间如何协作&quot;的问题。让我们继续探索。</p>
 
                                 
                                 </section>
@@ -408,7 +457,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"next":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"path":"chapter4_ipc.md","ref":"chapter4_ipc.md","articles":[]},"previous":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"path":"chapter2_arch.md","ref":"chapter2_arch.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter3_proc.md","mtime":"2025-11-24T07:13:09.148Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:13:18.146Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"next":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"path":"chapter4_ipc.md","ref":"chapter4_ipc.md","articles":[]},"previous":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"path":"chapter2_arch.md","ref":"chapter2_arch.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter3_proc.md","mtime":"2025-11-24T12:59:19.137Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T12:59:28.256Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

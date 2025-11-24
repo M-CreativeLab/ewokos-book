@@ -242,6 +242,8 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="第四章：喂，听得见吗？---ipc">第四章：喂，听得见吗？ - IPC</h1>
+<p>在上一章中，我们深入理解了进程管理——操作系统如何像一个指挥家，协调多个进程共享 CPU 资源。但现在有一个新的挑战：这些被严格隔离的进程如何相互通信？就像被困在不同房间的人，他们如何传递消息？</p>
+<p>这就是 IPC（Inter-Process Communication，进程间通信）要解决的核心问题。</p>
 <h2 id="41-为什么需要-ipc？">4.1 为什么需要 IPC？</h2>
 <p>在微内核的世界里，进程之间是<strong>老死不相往来</strong>的。</p>
 <ul>
@@ -275,6 +277,34 @@
 </li>
 </ol>
 <p><strong>EwokOS 主要使用同步 IPC。</strong> 为什么？因为它简单、可靠。对于微内核来说，简单就是美。</p>
+<h3 id="ipc-的历史：从管道到消息队列">IPC 的历史：从管道到消息队列</h3>
+<p>IPC 的历史和操作系统一样古老。让我们看看它是如何演化的：</p>
+<p><strong>1. 管道 (Pipes) - 1970 年代</strong></p>
+<ul>
+<li>Unix 最早的 IPC 机制，由 Doug McIlroy 提出。</li>
+<li>经典的命令 <code>ls | grep txt</code> 就是用管道连接两个进程。</li>
+<li>问题：只能单向通信，且只能在父子进程间使用。</li>
+</ul>
+<p><strong>2. 消息队列 (Message Queues) - 1980 年代</strong></p>
+<ul>
+<li>System V Unix 引入的机制。</li>
+<li>进程可以向队列发送消息，其他进程从队列读取。</li>
+<li>问题：需要复制数据，效率不高。</li>
+</ul>
+<p><strong>3. 共享内存 (Shared Memory) - 1980 年代</strong></p>
+<ul>
+<li>两个进程直接访问同一块物理内存。</li>
+<li>零拷贝，效率极高。</li>
+<li>问题：需要手动同步，容易出错。</li>
+</ul>
+<p><strong>4. RPC (Remote Procedure Call) - 1984 年</strong></p>
+<ul>
+<li>Sun Microsystems 开发的机制。</li>
+<li>让跨网络的进程通信看起来像本地函数调用。</li>
+<li>微内核的 IPC 本质上就是本地的 RPC。</li>
+</ul>
+<p><strong>Mach 微内核的贡献</strong>：
+CMU 的 Mach 微内核（1985 年）首次将 IPC 作为操作系统的核心抽象。它提出的<strong>端口 (Port)</strong> 和<strong>消息 (Message)</strong> 模型深刻影响了后续所有微内核的设计，包括 EwokOS。</p>
 <h2 id="43-ewokos-的-ipc-流程">4.3 EwokOS 的 IPC 流程</h2>
 <p>让我们看看一次典型的 IPC 通话（比如 Shell 呼叫 VFS）发生了什么：</p>
 <ol>
@@ -372,13 +402,25 @@ proto_free(resp);
 <li>零拷贝 (Zero-Copy)，效率极高。</li>
 <li>适合视频流、大文件等场景。</li>
 </ul>
-<p><strong>缺点</strong>：</p>
-<ul>
-<li>需要手动同步，容易出错。</li>
-<li>失去了 IPC 的进程隔离保护。</li>
-</ul>
 <p>通过这种机制，EwokOS 将一个个独立的孤岛（进程）连接成了一个繁忙的群岛网络。</p>
-<p>下一章，我们将看看这些岛屿的地基——内存管理。</p>
+<h2 id="47-本章小结与展望">4.7 本章小结与展望</h2>
+<p>我们刚刚探索了微内核的&quot;神经系统&quot;——IPC（进程间通信）。让我们回顾一下关键点：</p>
+<ul>
+<li><strong>IPC 的本质</strong>：在保持进程隔离的同时，提供安全、高效的通信机制</li>
+<li><strong>同步 vs 异步</strong>：打电话 vs 发邮件，EwokOS 选择了简单可靠的同步模式</li>
+<li><strong>历史演进</strong>：从 Unix 的管道到 Mach 的端口模型，IPC 一直在进化</li>
+<li><strong>共享内存</strong>：当需要传输大量数据时，零拷贝是最高效的方案</li>
+</ul>
+<p>IPC 解决了&quot;进程如何通信&quot;的问题，但还有一个更基础的问题：<strong>这些进程的数据存放在哪里？内存是如何分配和保护的？</strong></p>
+<p>想象一下，如果没有内存管理，进程 A 可能会不小心改写进程 B 的数据，导致灾难性后果。更糟糕的是，如果有恶意程序故意读取其他进程的密码或私钥，后果不堪设想。</p>
+<p><strong>这就是下一章的主题——内存管理</strong>。我们将看到：</p>
+<ul>
+<li>虚拟内存如何给每个进程创造&quot;独占整个世界&quot;的幻觉</li>
+<li>MMU（内存管理单元）如何像一个隐形的翻译官，偷偷替换地址</li>
+<li>写时复制（COW）如何让 <code>fork()</code> 变得飞快</li>
+<li>缺页异常如何让操作系统耍&quot;空头支票&quot;的把戏</li>
+</ul>
+<p>进程管理是系统的&quot;心脏&quot;，IPC 是&quot;神经系统&quot;，而内存管理就是&quot;土地规划局&quot;。让我们继续深入。</p>
 
                                 
                                 </section>
@@ -422,7 +464,7 @@ proto_free(resp);
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"next":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"previous":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter4_ipc.md","mtime":"2025-11-24T07:13:09.148Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T07:13:18.146Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"next":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"previous":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"dir":"ltr"},"config":{"plugins":["mermaid"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"mermaid":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter4_ipc.md","mtime":"2025-11-24T12:59:19.138Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T12:59:28.256Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
