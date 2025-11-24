@@ -1,0 +1,449 @@
+
+<!DOCTYPE HTML>
+<html lang="zh-hans" >
+    <head>
+        <meta charset="UTF-8">
+        <title>第四章：喂，听得见吗？ - IPC · EwokOS Microkernel Booklet</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="HonKit 4.0.8">
+        <meta name="author" content="Misa.Z">
+        
+        
+    
+    <link rel="stylesheet" href="gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="chapter5_memory.html" />
+    
+    
+    <link rel="prev" href="chapter3_proc.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book honkit-cloak">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="输入并搜索" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    前言
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="chapter1_intro.html">
+            
+                <a href="chapter1_intro.html">
+            
+                    
+                    第一章：操作系统的世界
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="chapter2_arch.html">
+            
+                <a href="chapter2_arch.html">
+            
+                    
+                    第二章：EwokOS - 小内核，大梦想
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="chapter3_proc.html">
+            
+                <a href="chapter3_proc.html">
+            
+                    
+                    第三章：幕后黑手 - 进程与线程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.5" data-path="chapter4_ipc.html">
+            
+                <a href="chapter4_ipc.html">
+            
+                    
+                    第四章：喂，听得见吗？ - IPC
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" data-path="chapter5_memory.html">
+            
+                <a href="chapter5_memory.html">
+            
+                    
+                    第五章：包租公 - 内存管理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" data-path="chapter6_drivers.html">
+            
+                <a href="chapter6_drivers.html">
+            
+                    
+                    第六章：打工魂 - 驱动与 VFS
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8" data-path="chapter7_hands_on.html">
+            
+                <a href="chapter7_hands_on.html">
+            
+                    
+                    第七章：把手弄脏 - 编译与运行
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://github.com/honkit/honkit" target="blank" class="gitbook-link">
+            本书使用 HonKit 发布
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="." >第四章：喂，听得见吗？ - IPC</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="第四章：喂，听得见吗？---ipc">第四章：喂，听得见吗？ - IPC</h1>
+<h2 id="41-为什么需要-ipc？">4.1 为什么需要 IPC？</h2>
+<p>在微内核的世界里，进程之间是<strong>老死不相往来</strong>的。</p>
+<ul>
+<li>进程 A 看不到进程 B 的内存。</li>
+<li>进程 B 改不了进程 A 的变量。</li>
+</ul>
+<p>这种隔离保证了安全，但也带来了麻烦。
+比如，Shell 想要读取文件，它不能直接去读硬盘，因为它没有权限。它必须找“文件系统服务”帮忙。
+但是，它怎么告诉文件系统“我要读这个文件”呢？</p>
+<p>这就需要 <strong>IPC (Inter-Process Communication，进程间通信)</strong>。</p>
+<h2 id="42-电话-vs-邮件：同步与异步">4.2 电话 vs 邮件：同步与异步</h2>
+<p>IPC 主要有两种模式：</p>
+<ol>
+<li><p><strong>异步 (Asynchronous) - 寄信</strong>：</p>
+<ul>
+<li>我把信扔进邮筒，然后该干嘛干嘛。</li>
+<li>对方什么时候收到，我不知道。</li>
+<li>对方回信了，我再去信箱拿。</li>
+<li><strong>优点</strong>：我不被阻塞，效率高。</li>
+<li><strong>缺点</strong>：逻辑复杂，不知道信丢没丢。</li>
+</ul>
+</li>
+<li><p><strong>同步 (Synchronous) - 打电话</strong>：</p>
+<ul>
+<li>我拨通电话，在那儿等着。</li>
+<li>对方接了，我们聊完，我挂电话。</li>
+<li>在通话期间，我什么也干不了，只能专心打电话。</li>
+<li><strong>优点</strong>：简单直接，打完就知道结果。</li>
+<li><strong>缺点</strong>：我会被阻塞 (Block)。</li>
+</ul>
+</li>
+</ol>
+<p><strong>EwokOS 主要使用同步 IPC。</strong> 为什么？因为它简单、可靠。对于微内核来说，简单就是美。</p>
+<h2 id="43-ewokos-的-ipc-流程">4.3 EwokOS 的 IPC 流程</h2>
+<p>让我们看看一次典型的 IPC 通话（比如 Shell 呼叫 VFS）发生了什么：</p>
+<ol>
+<li><p><strong>拨号 (Client Call)</strong>：</p>
+<ul>
+<li>Shell (Client) 调用 <code>ipc_call(vfs_pid, CMD_READ, ...)</code>。</li>
+<li>内核收到请求，把 Shell <strong>冻结 (BLOCK)</strong>，让它去睡觉。</li>
+<li>内核生成一个任务单 <code>ipc_task_t</code>，塞进 VFS (Server) 的信箱里。</li>
+</ul>
+</li>
+<li><p><strong>接听 (Server Fetch)</strong>：</p>
+<ul>
+<li>VFS (Server) 平时就在循环里等着，调用 <code>ipc_fetch()</code> 检查信箱。</li>
+<li>发现有新任务！VFS 拿到任务单，开始干活（读文件）。</li>
+</ul>
+</li>
+<li><p><strong>回复 (Server Return)</strong>：</p>
+<ul>
+<li>VFS 干完活了，把结果写好，调用 <code>ipc_end()</code>。</li>
+<li>内核收到通知，把结果搬运给 Shell。</li>
+<li>内核<strong>唤醒 (WAKEUP)</strong> Shell。</li>
+</ul>
+</li>
+<li><p><strong>挂断 (Client Resume)</strong>：</p>
+<ul>
+<li>Shell 醒来，发现 <code>ipc_call</code> 返回了，手里拿着 VFS 给的数据。</li>
+<li>Shell 继续干活。</li>
+</ul>
+</li>
+</ol>
+<h2 id="44-核心代码赏析">4.4 核心代码赏析</h2>
+<p>IPC 的核心代码在 <code>kernel/kernel/src/ipc.c</code>。</p>
+<pre><code class="lang-c"><span class="hljs-comment">// 客户端发起呼叫</span>
+<span class="hljs-function"><span class="hljs-keyword">int32_t</span> <span class="hljs-title">ipc_call</span><span class="hljs-params">(<span class="hljs-keyword">int32_t</span> pid, <span class="hljs-keyword">int32_t</span> call_id, <span class="hljs-keyword">proto_t</span>* data)</span> </span>{
+    <span class="hljs-comment">// 1. 准备参数</span>
+    <span class="hljs-comment">// 2. 陷入内核 (System Call)</span>
+    <span class="hljs-comment">// 3. 内核将当前进程状态设为 BLOCK</span>
+    <span class="hljs-comment">// 4. 切换到其他进程</span>
+}
+
+<span class="hljs-comment">// 服务端处理</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">ipc_handle_loop</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">while</span>(<span class="hljs-literal">true</span>) {
+        <span class="hljs-comment">// 1. 检查有没有任务</span>
+        <span class="hljs-keyword">int</span> id = ipc_fetch(); 
+        <span class="hljs-keyword">if</span> (id &gt; <span class="hljs-number">0</span>) {
+            <span class="hljs-comment">// 2. 处理任务</span>
+            do_work();
+            <span class="hljs-comment">// 3. 告诉内核完事了</span>
+            ipc_end();
+        }
+    }
+}
+</code></pre>
+<p>通过这种机制，EwokOS 将一个个独立的孤岛（进程）连接成了一个繁忙的群岛网络。</p>
+<p>下一章，我们将看看这些岛屿的地基——内存管理。</p>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="chapter3_proc.html" class="navigation navigation-prev " aria-label="Previous page: 第三章：幕后黑手 - 进程与线程">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="chapter5_memory.html" class="navigation navigation-next " aria-label="Next page: 第五章：包租公 - 内存管理">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"next":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"path":"chapter5_memory.md","ref":"chapter5_memory.md","articles":[]},"previous":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter4_ipc.md","mtime":"2025-11-24T06:43:13.873Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T06:43:27.895Z"},"basePath":".","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <noscript>
+        <style>
+            .honkit-cloak {
+                display: block !important;
+            }
+        </style>
+    </noscript>
+    <script>
+        // Restore sidebar state as critical path for prevent layout shift
+        function __init__getSidebarState(defaultValue){
+            var baseKey = "";
+            var key = baseKey + ":sidebar";
+            try {
+                var value = localStorage[key];
+                if (value === undefined) {
+                    return defaultValue;
+                }
+                var parsed = JSON.parse(value);
+                return parsed == null ? defaultValue : parsed;
+            } catch (e) {
+                return defaultValue;
+            }
+        }
+        function __init__restoreLastSidebarState() {
+            var isMobile = window.matchMedia("(max-width: 600px)").matches;
+            if (isMobile) {
+                // Init last state if not mobile
+                return;
+            }
+            var sidebarState = __init__getSidebarState(true);
+            var book = document.querySelector(".book");
+            // Show sidebar if it enabled
+            if (sidebarState && book) {
+                book.classList.add("without-animation", "with-summary");
+            }
+        }
+
+        try {
+            __init__restoreLastSidebarState();
+        } finally {
+            var book = document.querySelector(".book");
+            book.classList.remove("honkit-cloak");
+        }
+    </script>
+    <script src="gitbook/gitbook.js"></script>
+    <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

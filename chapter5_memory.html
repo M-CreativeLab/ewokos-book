@@ -1,0 +1,403 @@
+
+<!DOCTYPE HTML>
+<html lang="zh-hans" >
+    <head>
+        <meta charset="UTF-8">
+        <title>第五章：包租公 - 内存管理 · EwokOS Microkernel Booklet</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="HonKit 4.0.8">
+        <meta name="author" content="Misa.Z">
+        
+        
+    
+    <link rel="stylesheet" href="gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="chapter6_drivers.html" />
+    
+    
+    <link rel="prev" href="chapter4_ipc.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book honkit-cloak">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="输入并搜索" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    前言
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="chapter1_intro.html">
+            
+                <a href="chapter1_intro.html">
+            
+                    
+                    第一章：操作系统的世界
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="chapter2_arch.html">
+            
+                <a href="chapter2_arch.html">
+            
+                    
+                    第二章：EwokOS - 小内核，大梦想
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="chapter3_proc.html">
+            
+                <a href="chapter3_proc.html">
+            
+                    
+                    第三章：幕后黑手 - 进程与线程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" data-path="chapter4_ipc.html">
+            
+                <a href="chapter4_ipc.html">
+            
+                    
+                    第四章：喂，听得见吗？ - IPC
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.6" data-path="chapter5_memory.html">
+            
+                <a href="chapter5_memory.html">
+            
+                    
+                    第五章：包租公 - 内存管理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" data-path="chapter6_drivers.html">
+            
+                <a href="chapter6_drivers.html">
+            
+                    
+                    第六章：打工魂 - 驱动与 VFS
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8" data-path="chapter7_hands_on.html">
+            
+                <a href="chapter7_hands_on.html">
+            
+                    
+                    第七章：把手弄脏 - 编译与运行
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://github.com/honkit/honkit" target="blank" class="gitbook-link">
+            本书使用 HonKit 发布
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="." >第五章：包租公 - 内存管理</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="第五章：包租公---内存管理">第五章：包租公 - 内存管理</h1>
+<h2 id="51-虚拟内存：黑客帝国的矩阵">5.1 虚拟内存：黑客帝国的矩阵</h2>
+<p>你以为你拥有整个世界，其实你只是生活在一个虚拟的矩阵里。
+对于进程来说，也是如此。</p>
+<p>每个进程都觉得自己拥有完整的 4GB 内存（在 32 位系统上）。它想读哪里就读哪里，想写哪里就写哪里。
+但实际上，这只是操作系统给它编织的<strong>虚拟内存 (Virtual Memory)</strong> 幻象。</p>
+<p>真正的物理内存（RAM）可能只有 1GB，而且被几十个进程瓜分得七零八落。</p>
+<h2 id="52-分页：把世界切成小块">5.2 分页：把世界切成小块</h2>
+<p>操作系统是怎么做到这一点的呢？答案是<strong>分页 (Paging)</strong>。</p>
+<p>它把内存切成一块块大小相等的小方块，通常是 4KB，叫做<strong>页 (Page)</strong>。</p>
+<ul>
+<li><strong>虚拟页 (Virtual Page)</strong>：进程看到的页。</li>
+<li><strong>物理页 (Physical Page)</strong>：内存条上真正的页。</li>
+</ul>
+<p>操作系统维护着一本<strong>页表 (Page Table)</strong>，就像一个巨大的映射字典：</p>
+<ul>
+<li>进程 A 的第 1 页 -&gt; 物理内存的第 100 页</li>
+<li>进程 A 的第 2 页 -&gt; 物理内存的第 5 页</li>
+<li>进程 B 的第 1 页 -&gt; 物理内存的第 200 页</li>
+</ul>
+<h2 id="53-mmu：幕后的魔术师">5.3 MMU：幕后的魔术师</h2>
+<p>谁来负责查字典呢？如果每次读写内存都要软件去查字典，那太慢了。
+CPU 里有一个专门的硬件组件，叫做 <strong>MMU (Memory Management Unit，内存管理单元)</strong>。</p>
+<ol>
+<li>进程发出指令：读取虚拟地址 <code>0x1000</code>。</li>
+<li>MMU 拦截指令，查看当前的页表。</li>
+<li>MMU 发现 <code>0x1000</code> 对应物理地址 <code>0x5000</code>。</li>
+<li>MMU 偷偷把地址替换成 <code>0x5000</code>，去访问物理内存。</li>
+<li>进程完全不知道发生了什么，它以为自己真的读了 <code>0x1000</code>。</li>
+</ol>
+<h2 id="54-缺页异常：空头支票">5.4 缺页异常：空头支票</h2>
+<p>有时候，进程想访问一个页面，但 MMU 发现页表里没有记录（或者标记为“不在内存中”）。
+这时，MMU 会大喊一声：“停！出错了！” 这就是 <strong>缺页异常 (Page Fault)</strong>。</p>
+<p>操作系统听到喊声，赶紧跑过来处理：</p>
+<ol>
+<li><strong>懒加载 (Lazy Allocation)</strong>：进程申请了内存，但操作系统为了省事，先开个空头支票（只分配虚拟地址，不给物理页）。等进程真的要用了，触发缺页异常，操作系统才赶紧找一块物理页补上。</li>
+<li><strong>交换 (Swapping)</strong>：内存不够了，操作系统把很久不用的页写到硬盘上（Swap 分区），腾出空间。等进程又要用时，再从硬盘读回来。</li>
+</ol>
+<h2 id="55-ewokos-的内存管理">5.5 EwokOS 的内存管理</h2>
+<p>EwokOS 的内存管理代码主要在 <code>kernel/kernel/src/mm</code> 目录下。
+它实现了基本的页表映射和内存分配 (<code>kmalloc</code>/<code>kfree</code>)。</p>
+<p>每个进程都有自己的页目录 (<code>proc_t-&gt;space-&gt;vm</code>)。当切换进程时，内核会告诉 MMU：“换字典了！现在用进程 B 的页表。”</p>
+<p>这样，进程 A 就算把自己的虚拟内存写烂了，也绝对影响不到进程 B 的物理内存。这就是<strong>内存保护</strong>。</p>
+<p>下一章，我们将看看那些在用户空间辛勤工作的“打工仔”——驱动程序。</p>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="chapter4_ipc.html" class="navigation navigation-prev " aria-label="Previous page: 第四章：喂，听得见吗？ - IPC">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="chapter6_drivers.html" class="navigation navigation-next " aria-label="Next page: 第六章：打工魂 - 驱动与 VFS">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"第五章：包租公 - 内存管理","level":"1.6","depth":1,"next":{"title":"第六章：打工魂 - 驱动与 VFS","level":"1.7","depth":1,"path":"chapter6_drivers.md","ref":"chapter6_drivers.md","articles":[]},"previous":{"title":"第四章：喂，听得见吗？ - IPC","level":"1.5","depth":1,"path":"chapter4_ipc.md","ref":"chapter4_ipc.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter5_memory.md","mtime":"2025-11-24T06:43:13.873Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T06:43:27.895Z"},"basePath":".","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <noscript>
+        <style>
+            .honkit-cloak {
+                display: block !important;
+            }
+        </style>
+    </noscript>
+    <script>
+        // Restore sidebar state as critical path for prevent layout shift
+        function __init__getSidebarState(defaultValue){
+            var baseKey = "";
+            var key = baseKey + ":sidebar";
+            try {
+                var value = localStorage[key];
+                if (value === undefined) {
+                    return defaultValue;
+                }
+                var parsed = JSON.parse(value);
+                return parsed == null ? defaultValue : parsed;
+            } catch (e) {
+                return defaultValue;
+            }
+        }
+        function __init__restoreLastSidebarState() {
+            var isMobile = window.matchMedia("(max-width: 600px)").matches;
+            if (isMobile) {
+                // Init last state if not mobile
+                return;
+            }
+            var sidebarState = __init__getSidebarState(true);
+            var book = document.querySelector(".book");
+            // Show sidebar if it enabled
+            if (sidebarState && book) {
+                book.classList.add("without-animation", "with-summary");
+            }
+        }
+
+        try {
+            __init__restoreLastSidebarState();
+        } finally {
+            var book = document.querySelector(".book");
+            book.classList.remove("honkit-cloak");
+        }
+    </script>
+    <script src="gitbook/gitbook.js"></script>
+    <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

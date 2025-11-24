@@ -1,0 +1,432 @@
+
+<!DOCTYPE HTML>
+<html lang="zh-hans" >
+    <head>
+        <meta charset="UTF-8">
+        <title>第二章：EwokOS - 小内核，大梦想 · EwokOS Microkernel Booklet</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="HonKit 4.0.8">
+        <meta name="author" content="Misa.Z">
+        
+        
+    
+    <link rel="stylesheet" href="gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="gitbook/@honkit/honkit-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="chapter3_proc.html" />
+    
+    
+    <link rel="prev" href="chapter1_intro.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book honkit-cloak">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="输入并搜索" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    前言
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="chapter1_intro.html">
+            
+                <a href="chapter1_intro.html">
+            
+                    
+                    第一章：操作系统的世界
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.3" data-path="chapter2_arch.html">
+            
+                <a href="chapter2_arch.html">
+            
+                    
+                    第二章：EwokOS - 小内核，大梦想
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="chapter3_proc.html">
+            
+                <a href="chapter3_proc.html">
+            
+                    
+                    第三章：幕后黑手 - 进程与线程
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" data-path="chapter4_ipc.html">
+            
+                <a href="chapter4_ipc.html">
+            
+                    
+                    第四章：喂，听得见吗？ - IPC
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" data-path="chapter5_memory.html">
+            
+                <a href="chapter5_memory.html">
+            
+                    
+                    第五章：包租公 - 内存管理
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" data-path="chapter6_drivers.html">
+            
+                <a href="chapter6_drivers.html">
+            
+                    
+                    第六章：打工魂 - 驱动与 VFS
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8" data-path="chapter7_hands_on.html">
+            
+                <a href="chapter7_hands_on.html">
+            
+                    
+                    第七章：把手弄脏 - 编译与运行
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://github.com/honkit/honkit" target="blank" class="gitbook-link">
+            本书使用 HonKit 发布
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="." >第二章：EwokOS - 小内核，大梦想</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="第二章：ewokos---小内核，大梦想">第二章：EwokOS - 小内核，大梦想</h1>
+<h2 id="21-架构总览：美味的三明治">2.1 架构总览：美味的三明治</h2>
+<p>如果把 EwokOS 比作一个三明治，它的结构是这样的：</p>
+<h3 id="1-底层面包：微内核-the-kernel">1. 底层面包：微内核 (The Kernel)</h3>
+<p>这是三明治的最底层，也是最硬的一层。它直接铺在盘子（硬件）上。</p>
+<ul>
+<li><strong>位置</strong>：<code>kernel/kernel</code></li>
+<li><strong>职责</strong>：<ul>
+<li><strong>调度</strong>：决定谁能咬一口 CPU。</li>
+<li><strong>IPC</strong>：负责传递层与层之间的酱料（消息）。</li>
+<li><strong>内存管理</strong>：划分地盘，防止大家打架。</li>
+</ul>
+</li>
+<li><strong>特点</strong>：代码量极少，只有几千行。它不认识文件，不认识键盘，甚至不知道怎么在屏幕上画画。它只负责最基本的生存需求。</li>
+</ul>
+<h3 id="2-中间夹心：核心服务-core-services">2. 中间夹心：核心服务 (Core Services)</h3>
+<p>这层是三明治的精华，提供了操作系统的基础口感。</p>
+<ul>
+<li><strong>位置</strong>：<code>system/</code></li>
+<li><strong>成员</strong>：<ul>
+<li><strong>Core</strong>：内核的大管家，负责进程的注册、生杀大权。</li>
+<li><strong>VFS (Virtual File System)</strong>：虚拟文件系统。它是一个服务进程，负责管理所有的文件和设备。在 EwokOS 里，<strong>一切皆文件</strong>，而 VFS 就是这些文件的总管理员。</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-上层配菜：驱动与应用-drivers--apps">3. 上层配菜：驱动与应用 (Drivers &amp; Apps)</h3>
+<p>这层是最丰富多彩的，想加什么就加什么。</p>
+<ul>
+<li><strong>位置</strong>：<code>system/basic/drivers</code>, <code>system/basic/bin</code></li>
+<li><strong>成员</strong>：<ul>
+<li><strong>驱动程序</strong>：<code>timerd</code> (时钟), <code>uartd</code> (串口), <code>fbd</code> (显卡)。注意！它们是<strong>普通进程</strong>，和计算器、记事本没有本质区别，只是它们有权访问特定的硬件。</li>
+<li><strong>应用程序</strong>：Shell, Finder, 甚至贪吃蛇游戏。</li>
+</ul>
+</li>
+</ul>
+<h2 id="22-核心组件图解">2.2 核心组件图解</h2>
+<p>让我们画一张图来看看它们是怎么互动的：</p>
+<pre><code class="lang-mermaid">graph TD
+    subgraph User Space [用户空间 (User Space)]
+        App[用户应用 (Shell, Game)]
+        Driver[驱动进程 (Timer, UART, FB)]
+        VFS[VFS 服务进程]
+        Core[Core 服务进程]
+    end
+
+    subgraph Kernel Space [内核空间 (Kernel Space)]
+        Microkernel[微内核 (Scheduler, IPC, MMU)]
+    end
+
+    subgraph Hardware [硬件 (Hardware)]
+        CPU
+        RAM
+        IO[外设 (Timer, UART, Screen)]
+    end
+
+    App -- 1. 读文件 --&gt; VFS
+    VFS -- 2. 转发请求 --&gt; Driver
+    Driver -- 3. 读写寄存器 --&gt; Microkernel
+    Microkernel -- 4. 操作硬件 --&gt; IO
+    IO -- 5. 中断 --&gt; Microkernel
+    Microkernel -- 6. 通知 --&gt; Driver
+    Driver -- 7. 数据返回 --&gt; VFS
+    VFS -- 8. 结果返回 --&gt; App
+</code></pre>
+<h2 id="23-为什么这样设计？">2.3 为什么这样设计？</h2>
+<p>你可能会问，为什么要把驱动放在用户空间？让它们直接在内核里跑不是更快吗？</p>
+<p>这就好比：<strong>为什么不让修水管的工人住在你家里？</strong></p>
+<ul>
+<li><strong>安全性</strong>：如果修水管的工人（驱动）住在你家（内核），他万一发疯了（Bug），可能会把你的房子拆了（系统崩溃）。如果他只是上门服务（用户进程），他发疯了，你把他赶出去（Kill 进程）就行了，房子还在。</li>
+<li><strong>灵活性</strong>：你想换个修水管的？直接换人就行，不用搬家。在 EwokOS 里，你可以在系统运行时加载、卸载驱动，就像打开关闭 App 一样简单。</li>
+</ul>
+<p>当然，代价就是——<strong>沟通成本</strong>。每次修水管都要打电话预约、开门、关门（IPC 通信），确实比住在家里随叫随到要慢一点。但为了安全和灵活，这个代价是值得的。</p>
+<p>下一章，我们将深入内核的最深处，看看它是如何像提线木偶一样操控进程的。</p>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="chapter1_intro.html" class="navigation navigation-prev " aria-label="Previous page: 第一章：操作系统的世界">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="chapter3_proc.html" class="navigation navigation-next " aria-label="Next page: 第三章：幕后黑手 - 进程与线程">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"第二章：EwokOS - 小内核，大梦想","level":"1.3","depth":1,"next":{"title":"第三章：幕后黑手 - 进程与线程","level":"1.4","depth":1,"path":"chapter3_proc.md","ref":"chapter3_proc.md","articles":[]},"previous":{"title":"第一章：操作系统的世界","level":"1.2","depth":1,"path":"chapter1_intro.md","ref":"chapter1_intro.md","articles":[]},"dir":"ltr"},"config":{"plugins":[],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"theme":"default","author":"Misa.Z","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56},"embedFonts":false},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"EwokOS Microkernel Booklet","language":"zh-hans","gitbook":"*","description":"A deep dive into the EwokOS microkernel."},"file":{"path":"chapter2_arch.md","mtime":"2025-11-24T06:43:13.873Z","type":"markdown"},"gitbook":{"version":"4.0.8","time":"2025-11-24T06:43:27.895Z"},"basePath":".","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <noscript>
+        <style>
+            .honkit-cloak {
+                display: block !important;
+            }
+        </style>
+    </noscript>
+    <script>
+        // Restore sidebar state as critical path for prevent layout shift
+        function __init__getSidebarState(defaultValue){
+            var baseKey = "";
+            var key = baseKey + ":sidebar";
+            try {
+                var value = localStorage[key];
+                if (value === undefined) {
+                    return defaultValue;
+                }
+                var parsed = JSON.parse(value);
+                return parsed == null ? defaultValue : parsed;
+            } catch (e) {
+                return defaultValue;
+            }
+        }
+        function __init__restoreLastSidebarState() {
+            var isMobile = window.matchMedia("(max-width: 600px)").matches;
+            if (isMobile) {
+                // Init last state if not mobile
+                return;
+            }
+            var sidebarState = __init__getSidebarState(true);
+            var book = document.querySelector(".book");
+            // Show sidebar if it enabled
+            if (sidebarState && book) {
+                book.classList.add("without-animation", "with-summary");
+            }
+        }
+
+        try {
+            __init__restoreLastSidebarState();
+        } finally {
+            var book = document.querySelector(".book");
+            book.classList.remove("honkit-cloak");
+        }
+    </script>
+    <script src="gitbook/gitbook.js"></script>
+    <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
