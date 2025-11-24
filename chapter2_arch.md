@@ -33,18 +33,18 @@
 
 ```mermaid
 graph TD
-    subgraph UserSpace["用户空间 (User Space)"]
+    subgraph userSpace["用户空间 (User Space)"]
         App[用户应用 Shell, Game]
         Driver[驱动进程 Timer, UART, FB]
         VFS[VFS 服务进程]
         Core[Core 服务进程]
     end
 
-    subgraph KernelSpace["内核空间 (Kernel Space)"]
+    subgraph kernelSpace["内核空间 (Kernel Space)"]
         Microkernel[微内核 Scheduler, IPC, MMU]
     end
 
-    subgraph Hardware["硬件 (Hardware)"]
+    subgraph hardware["硬件 (Hardware)"]
         CPU
         RAM
         IO[外设 Timer, UART, Screen]
