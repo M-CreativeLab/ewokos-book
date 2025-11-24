@@ -34,12 +34,12 @@ EwokOS 支持多种硬件平台，最方便的是在 QEMU 模拟器上运行 Ras
     ```
 
 2.  **编译内核**：
-    进入树莓派构建目录：
+    进入树莓派构建目录（以 Raspberry Pi 2 为例）：
     ```bash
-    cd kernel/build/raspi/pix
+    cd kernel/build/raspi2/pix
     make
     ```
-    如果一切顺利，你会看到 `kernel.img` 生成了。
+    如果一切顺利，你会看到 `kernel7.img` 生成了。
 
 3.  **编译文件系统**：
     EwokOS 需要一个根文件系统 (RootFS) 才能启动。
@@ -54,7 +54,7 @@ EwokOS 支持多种硬件平台，最方便的是在 QEMU 模拟器上运行 Ras
 回到构建目录，启动 QEMU：
 
 ```bash
-cd kernel/build/raspi/pix
+cd kernel/build/raspi2/pix
 make run
 ```
 
