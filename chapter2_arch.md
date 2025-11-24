@@ -281,8 +281,9 @@ MODULE_LICENSE("GPL");
 #include <ewoksys/syscall.h>
 
 // 设备控制函数 - 处理读写请求
+// 参数 p: 用户数据指针，可用于保存设备状态，此例中未使用
 static int timer_dcntl(int from_pid, int cmd, 
-                       proto_t* in, proto_t* out, void* p) {  // p: 用户数据指针，此例中未使用
+                       proto_t* in, proto_t* out, void* p) {
     if (cmd == CNTL_READ) {
         // 直接使用普通的函数调用
         uint64_t time = syscall1(SYS_GET_SYS_TIME, 0);
